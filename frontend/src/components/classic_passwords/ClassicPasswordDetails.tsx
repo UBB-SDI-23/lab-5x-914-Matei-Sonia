@@ -8,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
+import {Vault} from "../../models/Vault";
 
 export const ClassicPasswordDetails = () => {
     const [loading, setLoading] = useState(true);
@@ -41,8 +42,8 @@ export const ClassicPasswordDetails = () => {
                         <ul>
                             <li>Created: {passw?.created_at}</li>
                             <li>Modified: {passw?.last_modified}</li>
-                            <li>Vault: <Link to={`/vault/${passw.vault.id}/details`} title="View vault details">
-                                {passw.vault.title}
+                            <li>Vault: <Link to={`/vault/${(passw?.vault as Vault).id}/details`} title="View vault details">
+                                {(passw?.vault as Vault).title}
                             </Link></li>
                             <li>Used for: {passw?.used_for}</li>
                             <li>Note: {passw?.note}</li>

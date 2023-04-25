@@ -85,7 +85,7 @@ export const AcountPasswordEdit = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<Tag[]>(
-                `${BACKEND_API_URL}/tag/${passw.vault.id}/autocomplete?query=${query}`
+                `${BACKEND_API_URL}/tag/${(passw?.vault as Vault).id}/autocomplete?query=${query}`
             );
             const data = await response.data;
             setTag(data);

@@ -8,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
+import {Vault} from "../../models/Vault";
 
 export const TagsDetails = () => {
     const [loading, setLoading] = useState(true);
@@ -39,8 +40,8 @@ export const TagsDetails = () => {
                         </IconButton>{" "}
                         <h1>Details</h1>
                         <ul>
-                            <li>Vault: <Link to={`/vault/${tag.vault.id}/details`} title="View tag details">
-                                {tag.vault.title}
+                            <li>Vault: <Link to={`/vault/${(tag?.vault as Vault).id}/details`} title="View tag details">
+                                {(tag?.vault as Vault).title}
                             </Link></li>
                             <li>Title: {tag?.title}</li>
                         </ul>
