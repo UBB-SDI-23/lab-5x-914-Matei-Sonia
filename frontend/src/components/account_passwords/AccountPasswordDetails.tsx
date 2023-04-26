@@ -19,6 +19,7 @@ export const AccountPasswordDetails = () => {
         setLoading(true);
         axios.get(`${BACKEND_API_URL}/account/${passwId}`)
             .then((response) => {
+                console.log(response.data)
                 setPassw(response.data);
                 setLoading(false);
             })

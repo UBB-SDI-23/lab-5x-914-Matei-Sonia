@@ -1,7 +1,6 @@
 import { Box, AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
-import SchoolIcon from "@mui/icons-material/School";
-import LocalLibraryIcon from "@mui/icons-material/LocalLibrary";
+import LockIcon from '@mui/icons-material/Lock';
 
 export const AppMenu = () => {
     const location = useLocation();
@@ -19,7 +18,7 @@ export const AppMenu = () => {
                         color="inherit"
                         aria-label="school"
                         sx={{ mr: 2 }}>
-                        <SchoolIcon />
+                        <LockIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ mr: 5 }}>
                         Password management

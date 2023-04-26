@@ -21,6 +21,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 export const AllAccountPasswords = () => {
     const [loading, setLoading] = useState(true);
@@ -74,6 +76,27 @@ export const AllAccountPasswords = () => {
         });
     };
 
+    const [pg, setpg] = React.useState(1);
+
+    const handleNext = () => {
+        setLoading(true);
+        setpg(pg + 1)
+        axios.get(`${BACKEND_API_URL}/account?page=${pg}`)
+            .then((response) => {
+                setPassw(response.data);
+                setLoading(false);
+            });
+    }
+    const handleBack = () => {
+        setLoading(true);
+        setpg(pg - 1)
+        axios.get(`${BACKEND_API_URL}/account?page=${pg}`)
+            .then((response) => {
+                setPassw(response.data);
+                setLoading(false);
+            });
+    }
+
     return (
         <Container>
             <h1>All account passwords</h1>
@@ -125,7 +148,7 @@ export const AllAccountPasswords = () => {
                         <TableBody>
                             {sortedInfo(orderColumn, orderDirection).map((passw, index) => (
                                 <TableRow key={passw.id}>
-                                    <TableCell component="th" scope="row">{index + 1}</TableCell>
+                                    <TableCell component="th" scope="row">{(pg - 1) * 25 + index + 1}</TableCell>
                                     <TableCell component="th" scope="row">
                                         <Link to={`/account/${passw.id}/details`} title="View passwords details">
                                             {passw.website_or_app}
@@ -157,6 +180,19 @@ export const AllAccountPasswords = () => {
                     </Table>
                 </TableContainer>
             )}
+            <br/>
+            <Container>
+                <IconButton onClick={handleBack} disabled={pg === 1}>
+                    <Tooltip title="Back" arrow>
+                        <ArrowBackIosNewIcon color="primary" />
+                    </Tooltip>
+                </IconButton>
+                <IconButton onClick={handleNext} disabled={pg === 40000}>
+                    <Tooltip title="Next" arrow>
+                        <ArrowForwardIosIcon color="primary" />
+                    </Tooltip>
+                </IconButton>
+            </Container>
         </Container>
     );
 };
