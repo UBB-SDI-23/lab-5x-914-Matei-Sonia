@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Subquery
 from django.db.models.functions import Length
 from rest_framework.generics import get_object_or_404
@@ -31,8 +32,16 @@ def greater_than(request, id):
 
 
 class VaultList(generics.ListCreateAPIView):
-    queryset = Vault.objects.all()
+    # queryset = Vault.objects.all()
     serializer_class = VaultSerializerList
+
+    def get_queryset(self):
+        vaults = Vault.objects.all()
+        paginator = Paginator(vaults, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
 
 
 class VaultDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -41,8 +50,16 @@ class VaultDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TagList(generics.ListCreateAPIView):
-    queryset = Tag.objects.all()
+    # queryset = Tag.objects.all()
     serializer_class = TagSerializerList
+
+    def get_queryset(self):
+        tags = Tag.objects.all()
+        paginator = Paginator(tags, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
 
 
 class TagDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -51,8 +68,16 @@ class TagDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PasswordAccountList(generics.ListCreateAPIView):
-    queryset = PasswordAccount.objects.all()
+    # queryset = PasswordAccount.objects.all()
     serializer_class = PasswordAccountSerializerList
+
+    def get_queryset(self):
+        passws = PasswordAccount.objects.all()
+        paginator = Paginator(passws, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
 
 
 class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -61,8 +86,16 @@ class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PasswordClassicList(generics.ListCreateAPIView):
-    queryset = PasswordClassic.objects.all()
+    # queryset = PasswordClassic.objects.all()
     serializer_class = PasswordClassicSerializerList
+
+    def get_queryset(self):
+        passws = PasswordClassic.objects.all()
+        paginator = Paginator(passws, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
 
 
 class PasswordClassicDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -121,7 +154,12 @@ class OrderVaultsByPasswords(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Vault.objects.annotate(avg_password_length=Avg(Length('account_passwords__password'))).order_by("-avg_password_length")
-        return queryset
+        paginator = Paginator(queryset, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
+        # return queryset
 
 
 class OrderPasswordsByTags(generics.ListCreateAPIView):
@@ -129,7 +167,12 @@ class OrderPasswordsByTags(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = PasswordAccount.objects.annotate(count_tags=Count("tags")).order_by("-count_tags")
-        return queryset
+        paginator = Paginator(queryset, 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
+        # return queryset
 
 
 class MultipleTagsToVault(APIView):
