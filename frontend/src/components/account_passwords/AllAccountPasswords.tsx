@@ -30,7 +30,7 @@ export const AllAccountPasswords = () => {
 
     useEffect(() => {
         setLoading(true);
-        axios.get(`${BACKEND_API_URL}/account`)
+        axios.get(`${BACKEND_API_URL}/account?page=${1}`)
             .then((response1) => {
                 axios.get(`${BACKEND_API_URL}/account/number`).then( (response) => {
                     setTotalPassw(response.data["number"]);

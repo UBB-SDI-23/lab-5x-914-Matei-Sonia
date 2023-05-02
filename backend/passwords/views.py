@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Subquery
+from django.db.models import Avg, Count
 from django.db.models.functions import Length
 from rest_framework.generics import get_object_or_404
 
@@ -7,12 +7,8 @@ from passwords.serializers import *
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics, mixins
+from rest_framework import status, generics
 from rest_framework.decorators import api_view
-
-from django.core.cache import cache
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 
 class FilterVaults(generics.ListAPIView):
     serializer_class = VaultSerializerList
@@ -138,13 +134,8 @@ class PasswordAccountList(generics.ListCreateAPIView):
         paginator = Paginator(passws.order_by("id"), 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
-        cache.set("vault_list_queryset", page_obj.object_list, 60 * 5)  # Cache for 5 minutes
 
         return page_obj.object_list
-
-    @method_decorator(cache_page(60 * 5))  # Cache the response for 5 minutes
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
 
 
 class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -238,7 +229,6 @@ class OrderPasswordsByTags(generics.ListCreateAPIView):
         page_obj = paginator.get_page(page_number)
 
         return page_obj.object_list
-        # return queryset
 
 
 class MultipleTagsToVault(APIView):

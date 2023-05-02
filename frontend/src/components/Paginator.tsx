@@ -23,8 +23,6 @@ const Pagination = ({ PerPage, total, paginate, currPage}) => {
 
     useEffect(() => {
         let tempNumberOfPages = [...arrOfVisibleButtons]
-        console.log(tempNumberOfPages)
-        console.log("aici", currPage)
         let dotsInitial = '...'
         let dotsLeft = '... '
         let dotsRight = ' ...'

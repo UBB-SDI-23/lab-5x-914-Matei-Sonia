@@ -30,7 +30,7 @@ export const AllTags = () => {
 
     useEffect(() => {
         setLoading(true);
-        axios.get(`${BACKEND_API_URL}/tag`)
+        axios.get(`${BACKEND_API_URL}/tag?page=${1}`)
             .then((response1) => {
                 axios.get(`${BACKEND_API_URL}/tag/number`).then( (response) => {
                     setTotalTags(response.data["number"]);
