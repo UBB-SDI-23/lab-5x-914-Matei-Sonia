@@ -21,19 +21,22 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import Pagination from "../Paginator";
 
 export const AllTags = () => {
     const [loading, setLoading] = useState(true);
+    const [totalTags, setTotalTags] = useState()
     const [tags, setTags] = useState<Tag[]>([]);
 
     useEffect(() => {
         setLoading(true);
         axios.get(`${BACKEND_API_URL}/tag`)
-            .then((response) => {
-                setTags(response.data);
-                setLoading(false);
+            .then((response1) => {
+                axios.get(`${BACKEND_API_URL}/tag/number`).then( (response) => {
+                    setTotalTags(response.data["number"]);
+                    setTags(response1.data);
+                    setLoading(false);
+                })
             });
     }, []);
 
@@ -77,25 +80,16 @@ export const AllTags = () => {
     };
 
     const [pg, setpg] = React.useState(1);
+    const [PerPage] = useState(25);
 
-    const handleNext = () => {
+    const paginate = (pageNB: React.SetStateAction<number>) => {
         setLoading(true);
-        setpg(pg + 1)
-        axios.get(`${BACKEND_API_URL}/tag?page=${pg}`)
+        setpg(pageNB)
+        axios.get(`${BACKEND_API_URL}/tag?page=${pageNB}`)
             .then((response) => {
                 setTags(response.data);
                 setLoading(false);
-            });
-    }
-    const handleBack = () => {
-        setLoading(true);
-        setpg(pg - 1)
-        axios.get(`${BACKEND_API_URL}/tag?page=${pg}`)
-            .then((response) => {
-                setTags(response.data);
-                setLoading(false);
-            });
-    }
+            });}
 
     return (
         <Container>
@@ -125,6 +119,15 @@ export const AllTags = () => {
                                         title
                                     </TableSortLabel>
                                 </TableCell>
+                                <TableCell align="left">
+                                    <TableSortLabel
+                                        active={orderColumn === "tagged_passws"}
+                                        direction={orderColumn === "tagged_passws" ? orderDirection : undefined}
+                                        onClick={() => handleSort("tagged_passws")}
+                                    >
+                                        tagged_passws
+                                    </TableSortLabel>
+                                </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -136,6 +139,7 @@ export const AllTags = () => {
                                             {tags.title}
                                         </Link>
                                     </TableCell>
+                                    <TableCell component="th" scope="row">{tags.nb_acc}</TableCell>
                                     <TableCell align="left">
                                         <IconButton
                                             component={Link}
@@ -161,18 +165,12 @@ export const AllTags = () => {
                 </TableContainer>
             )}
             <br/>
-            <Container>
-                <IconButton onClick={handleBack} disabled={pg === 1}>
-                    <Tooltip title="Back" arrow>
-                        <ArrowBackIosNewIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-                <IconButton onClick={handleNext} disabled={pg === 40000}>
-                    <Tooltip title="Next" arrow>
-                        <ArrowForwardIosIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-            </Container>
+            {!loading && ( <Pagination
+                PerPage={PerPage}
+                total={totalTags}
+                paginate={paginate}
+                currPage={pg}
+            />)}
         </Container>
     );
 };

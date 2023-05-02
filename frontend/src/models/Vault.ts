@@ -8,7 +8,8 @@ export interface Vault {
     title: string;
     description: string;
     master_password: string;
-    account_passwords: PasswordAccount[]
-    classic_passwords: PasswordClassic[]
-    tags: Tag[]
+    account_passwords: PasswordAccount[];
+    classic_passwords: PasswordClassic[];
+    tags: Tag[];
+    nb_acc: number;
 }

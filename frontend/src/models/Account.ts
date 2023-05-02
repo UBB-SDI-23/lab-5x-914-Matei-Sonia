@@ -11,4 +11,5 @@ export interface PasswordAccount {
     username_or_email: string;
     note: string;
     tags: TagPassword[];
+    nb_tgs: number;
 }

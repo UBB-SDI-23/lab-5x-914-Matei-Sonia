@@ -51,12 +51,24 @@ class TagSerializerList(serializers.ModelSerializer):
 
 
 class PasswordAccountSerializerList(serializers.ModelSerializer):
+    def validate_password(self, password):
+        if password is not None:
+            if len(password) < 5:
+                raise serializers.ValidationError("Password should have a length equal or greater than 5.")
+        return password
+
     class Meta:
         model = PasswordAccount
         fields = ["id", "created_at", "last_modified", "vault", "password", "website_or_app", "username_or_email", "note"]
 
 
 class PasswordClassicSerializerList(serializers.ModelSerializer):
+    def validate_password(self, password):
+        if password is not None:
+            if len(password) < 5:
+                raise serializers.ValidationError("Password should have a length equal or greater than 5.")
+        return password
+
     class Meta:
         model = PasswordClassic
         fields = ["id", "created_at", "last_modified", "vault", "password", "used_for", "note"]
@@ -65,6 +77,7 @@ class PasswordClassicSerializerList(serializers.ModelSerializer):
 class TagPasswordSerializer(DynamicFieldsModelSerializer):
     tag = TagSerializerList(read_only=True)
     password = PasswordAccountSerializerList(read_only=True)
+
     def validate(self, data):
         errors = {}
         try:
@@ -127,6 +140,12 @@ class PasswordAccountSerializerDetails(serializers.ModelSerializer):
     vault = VaultSerializerList(read_only=True)
     tags = TagPasswordSerializer(many=True, read_only=True, source="tagpassword_set", exclude_fields=["password"])
 
+    def validate_password(self, password):
+        if password is not None:
+            if len(password) < 5:
+                raise serializers.ValidationError("Password should have a length equal or greater than 5.")
+        return password
+
     class Meta:
         model = PasswordAccount
         fields = ["id", "created_at", "last_modified", "vault", "password", "website_or_app", "username_or_email", "note", "tags"]
@@ -134,6 +153,12 @@ class PasswordAccountSerializerDetails(serializers.ModelSerializer):
 
 class PasswordClassicSerializerDetails(serializers.ModelSerializer):
     vault = VaultSerializerList(read_only=True)
+
+    def validate_password(self, password):
+        if password is not None:
+            if len(password) < 5:
+                raise serializers.ValidationError("Password should have a length equal or greater than 5.")
+        return password
 
     class Meta:
         model = PasswordClassic

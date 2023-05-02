@@ -4,7 +4,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 
 urlpatterns = [
-    path('gt/<int:id>', views.greater_than),
+    path('vault/gt/<int:year>', views.FilterVaults.as_view()),
     path('statistics-vault', views.OrderVaultsByPasswords.as_view(), name='statistics-vault'),
     path('statistics-password', views.OrderPasswordsByTags.as_view(), name='statistics-password'),
 
@@ -33,4 +33,10 @@ urlpatterns = [
 
     path("vault/autocomplete/", views.VaultViewForAutocomplete.as_view()),
     path("tag/<int:pk>/autocomplete/", views.TagViewForAutocomplete.as_view()),
+
+    path("vault/number", views.get_number_vaults),
+    path("account/number", views.get_number_passwacc),
+    path("classic/number", views.get_number_passwcls),
+    path("tag/number", views.get_number_tags),
+    path("vault-filter/number/<int:year>", views.get_number_vaults_filter),
 ]

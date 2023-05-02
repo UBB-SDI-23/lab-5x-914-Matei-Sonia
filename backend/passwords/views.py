@@ -10,34 +10,86 @@ from rest_framework.response import Response
 from rest_framework import status, generics, mixins
 from rest_framework.decorators import api_view
 
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
-@api_view(['GET'])
-def greater_than(request, id):
-    if request.method == "GET":
-        account_passwords = PasswordAccount.objects.filter(id__gt=id)
-        classic_passwords = PasswordClassic.objects.filter(id__gt=id)
-        tags = Tag.objects.filter(id__gt=id)
-
-        serializer_ac = PasswordAccountSerializerList(account_passwords, many=True)
-        serializer_cl = PasswordClassicSerializerList(classic_passwords, many=True)
-        serializer_tg = TagSerializerList(tags, many=True)
-
-        content = {
-            "account_passw": serializer_ac.data,
-            "classic_passw": serializer_cl.data,
-            "tag": serializer_tg.data,
-        }
-
-        return Response(content)\
-
-
-class VaultList(generics.ListCreateAPIView):
-    # queryset = Vault.objects.all()
+class FilterVaults(generics.ListAPIView):
     serializer_class = VaultSerializerList
 
     def get_queryset(self):
-        vaults = Vault.objects.all()
-        paginator = Paginator(vaults, 25)
+        vaults = Vault.objects.filter(created_at__year__gt=self.kwargs['year'])
+        paginator = Paginator(vaults.order_by("id"), 25)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
+
+
+@api_view(['GET'])
+def get_number_vaults_filter(request, year):
+    if request.method == "GET":
+        return Response(
+            {
+                "number": len(Vault.objects.filter(created_at__year__gt=year))
+            }
+        )
+
+
+@api_view(['GET'])
+def get_number_vaults(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "number": Vault.objects.count()
+            }
+        )
+
+
+@api_view(['GET'])
+def get_number_passwacc(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "number": PasswordAccount.objects.count()
+            }
+        )
+
+
+@api_view(['GET'])
+def get_number_passwcls(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "number": PasswordClassic.objects.count()
+            }
+        )
+
+
+@api_view(['GET'])
+def get_number_tags(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "number": Tag.objects.count()
+            }
+        )
+
+
+class VaultList(generics.ListCreateAPIView):
+    serializer_class = VaultSerializerList
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault("context", self.get_serializer_context())
+        serializer = serializer_class(*args, **kwargs)
+        if self.request.method == "GET":
+            serializer.child.fields['nb_acc'] = serializers.IntegerField()
+        return serializer
+
+    def get_queryset(self):
+        vaults = Vault.objects.all().annotate(nb_acc=Count("account_passwords"))
+        paginator = Paginator(vaults.order_by("id"), 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -50,12 +102,16 @@ class VaultDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TagList(generics.ListCreateAPIView):
-    # queryset = Tag.objects.all()
     serializer_class = TagSerializerList
 
+    def get_serializer(self, *args, **kwargs):
+        serializer = super().get_serializer(*args, **kwargs)
+        serializer.child.fields['nb_acc'] = serializers.IntegerField()
+        return serializer
+
     def get_queryset(self):
-        tags = Tag.objects.all()
-        paginator = Paginator(tags, 25)
+        tags = Tag.objects.all().annotate(nb_acc=Count("tagged_passwords"))
+        paginator = Paginator(tags.order_by("id"), 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -68,16 +124,27 @@ class TagDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PasswordAccountList(generics.ListCreateAPIView):
-    # queryset = PasswordAccount.objects.all()
     serializer_class = PasswordAccountSerializerList
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault("context", self.get_serializer_context())
+        serializer = serializer_class(*args, **kwargs)
+        if self.request.method == "GET":
+            serializer.child.fields['nb_tgs'] = serializers.IntegerField()
+        return serializer
 
     def get_queryset(self):
-        passws = PasswordAccount.objects.all()
-        paginator = Paginator(passws, 25)
+        passws = PasswordAccount.objects.all().annotate(nb_tgs=Count("tags"))
+        paginator = Paginator(passws.order_by("id"), 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
+        cache.set("vault_list_queryset", page_obj.object_list, 60 * 5)  # Cache for 5 minutes
 
         return page_obj.object_list
+
+    @method_decorator(cache_page(60 * 5))  # Cache the response for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -86,12 +153,11 @@ class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PasswordClassicList(generics.ListCreateAPIView):
-    # queryset = PasswordClassic.objects.all()
     serializer_class = PasswordClassicSerializerList
 
     def get_queryset(self):
         passws = PasswordClassic.objects.all()
-        paginator = Paginator(passws, 25)
+        paginator = Paginator(passws.order_by("id"), 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 

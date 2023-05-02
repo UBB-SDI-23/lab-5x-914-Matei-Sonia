@@ -71,6 +71,14 @@ export const AppMenu = () => {
                         sx={{ mr: 5 }}>
                         Stat. account passw.
                     </Button>
+                    <Button
+                        variant={path.startsWith("/vault/filter") ? "outlined" : "text"}
+                        to="/vault/filter"
+                        component={Link}
+                        color="inherit"
+                        sx={{ mr: 5 }}>
+                        Filter Vaults
+                    </Button>
                 </Toolbar>
             </AppBar>
         </Box>

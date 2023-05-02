@@ -23,8 +23,8 @@ export const TagsAdd = () => {
     const [tag, setTag] = useState<Tag>({
         id: 0,
         title: "",
-        vault: 0,
-        tagged_passwords: [],
+        vault: 0, nb_acc: 0,
+        tagged_passwords: []
     });
 
     const [vault, setVault] = useState<Vault[]>([]);

@@ -9,24 +9,23 @@ import {
     CircularProgress,
     Container,
     IconButton,
-    Tooltip, TableSortLabel,
+    Tooltip,
 } from "@mui/material";
 import React from "react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BACKEND_API_URL } from "../constants";
-import { PasswordAccount } from "../models/Account";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import {Vault} from "../models/Vault";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import Pagination from "./Paginator";
 
 export const StatPassws = () => {
     const [loading, setLoading] = useState(true);
+    const [totalPassw, setTotalPassw ] = useState();
     const [passw, setPassw] = useState<{
         id: number;
         created_at: string;
@@ -41,32 +40,26 @@ export const StatPassws = () => {
     useEffect(() => {
         setLoading(true);
         axios.get(`${BACKEND_API_URL}/statistics-password`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
+            .then((response1) => {
+                axios.get(`${BACKEND_API_URL}/account/number`).then( (response) => {
+                    setTotalPassw(response.data["number"]);
+                    setPassw(response1.data);
+                    setLoading(false);
+                })
             });
     }, []);
 
     const [pg, setpg] = React.useState(1);
+    const [PerPage] = useState(25);
 
-    const handleNext = () => {
+    const paginate = (pageNB: React.SetStateAction<number>) => {
         setLoading(true);
-        setpg(pg + 1)
-        axios.get(`${BACKEND_API_URL}/account?page=${pg}`)
+        setpg(pageNB)
+        axios.get(`${BACKEND_API_URL}/account?page=${pageNB}`)
             .then((response) => {
                 setPassw(response.data);
                 setLoading(false);
-            });
-    }
-    const handleBack = () => {
-        setLoading(true);
-        setpg(pg - 1)
-        axios.get(`${BACKEND_API_URL}/account?page=${pg}`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
-            });
-    }
+            });}
 
     return (
         <Container>
@@ -134,18 +127,12 @@ export const StatPassws = () => {
                 </TableContainer>
             )}
             <br/>
-            <Container>
-                <IconButton onClick={handleBack} disabled={pg === 1}>
-                    <Tooltip title="Back" arrow>
-                        <ArrowBackIosNewIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-                <IconButton onClick={handleNext} disabled={pg === 40000}>
-                    <Tooltip title="Next" arrow>
-                        <ArrowForwardIosIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-            </Container>
+            {!loading && ( <Pagination
+                PerPage={PerPage}
+                total={totalPassw}
+                paginate={paginate}
+                currPage={pg}
+            />)}
         </Container>
     );
 };

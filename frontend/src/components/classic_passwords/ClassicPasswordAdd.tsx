@@ -16,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { PasswordClassic } from "../../models/Classic";
 import { Tag } from "../../models/Tag";
+import {toast, ToastContainer} from "react-toastify";
 
 export const ClassicPasswordAdd = () => {
     const navigate = useNavigate();
@@ -54,17 +55,31 @@ export const ClassicPasswordAdd = () => {
 
     const addPassword = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.post(`${BACKEND_API_URL}/classic`, passw);
-            navigate("/classic");
-        } catch (error) {
-            console.log(error);
+        if (passw.password.length < 5) {
+            notify("password length >= 5");
+        }
+        else {
+            try {
+                await axios.post(`${BACKEND_API_URL}/classic`, passw);
+                navigate("/classic");
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 
-    const handleInputChange = (event: any, value: any, reason: any) => {
-        console.log("input", value, reason);
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
 
+    const handleInputChange = (event: any, value: any, reason: any) => {
         if (reason === "input") {
             debouncedFetchSuggestions(value);
         }
@@ -122,6 +137,7 @@ export const ClassicPasswordAdd = () => {
                 </CardContent>
                 <CardActions></CardActions>
             </Card>
+            <ToastContainer/>
         </Container>
     );
 };

@@ -18,11 +18,13 @@ import {PasswordAccount} from "../../models/Account";
 import {Vault} from "../../models/Vault";
 import {Tag} from "../../models/Tag";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import {toast, ToastContainer} from "react-toastify";
 export const AcountPasswordEdit = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { passwId } = useParams();
     const [passw, setPassw] = useState<PasswordAccount>({
+        nb_tgs: 0,
         username_or_email: "",
         website_or_app: "",
         note: "",
@@ -39,20 +41,23 @@ export const AcountPasswordEdit = () => {
 
     const updatePassword = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.patch(`${BACKEND_API_URL}/account/${passwId}`, passw);
-            navigate("/account");
-        } catch (error) {
-            console.log(error);
+        if (passw.password.length < 5) {
+            notify("password length >= 5");
+        }
+        else {
+            try {
+                await axios.patch(`${BACKEND_API_URL}/account/${passwId}`, passw);
+                navigate("/account");
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 
     const addTag = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
-            console.log(tagFinalId)
             await axios.post(`${BACKEND_API_URL}/account/${passwId}/tag`, tagFinalId);
-            // navigate(`/account/${passwId}/edit`);
             window.location.reload();
         } catch (error) {
             console.log(error);
@@ -60,10 +65,8 @@ export const AcountPasswordEdit = () => {
     };
 
     const deleteTag = async (tagId: number) => {
-        // event.preventDefault();
         try {
             await axios.delete(`${BACKEND_API_URL}/account/${passwId}/tag/${tagId}`);
-            // navigate(`/account/${passwId}/edit`);
             window.location.reload();
         } catch (error) {
             console.log(error);
@@ -109,6 +112,17 @@ export const AcountPasswordEdit = () => {
             debouncedFetchSuggestions(value);
         }
     };
+
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
 
     return (
         <Container>
@@ -175,7 +189,7 @@ export const AcountPasswordEdit = () => {
                                     onInputChange={handleInputChange}
                                     onChange={(event, value) => {
                                         if (value) {
-                                            console.log(value);
+                                            // console.log(value);
                                             setTagFinal({...tagFinalId, tag: value.id});
                                         }
                                     }}
@@ -197,6 +211,7 @@ export const AcountPasswordEdit = () => {
                     </CardContent>
                     <CardActions></CardActions>
                 </Card>)}
+            <ToastContainer/>
         </Container>
     );
 };

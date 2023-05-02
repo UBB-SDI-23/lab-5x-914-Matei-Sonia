@@ -1,20 +1,20 @@
 import {
-    Autocomplete, Box,
+    Box,
     Button,
     Card,
     CardActions,
-    CardContent, CircularProgress, debounce,
+    CardContent, CircularProgress,
     IconButton,
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { PasswordClassic } from "../../models/Classic";
-import { Tag } from "../../models/Tag";
+import {toast, ToastContainer} from "react-toastify";
 
 export const ClassicPasswordEdit = () => {
     const navigate = useNavigate();
@@ -33,11 +33,16 @@ export const ClassicPasswordEdit = () => {
 
     const updatePassword = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.patch(`${BACKEND_API_URL}/classic/${passwId}`, passw);
-            navigate("/classic");
-        } catch (error) {
-            console.log(error);
+        if (passw.password.length < 5) {
+            notify("password length >= 5");
+        }
+        else {
+            try {
+                await axios.patch(`${BACKEND_API_URL}/classic/${passwId}`, passw);
+                navigate("/classic");
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 
@@ -48,8 +53,18 @@ export const ClassicPasswordEdit = () => {
                 setPassw(response.data);
                 setLoading(false);
             })
-
     }, [passwId]);
+
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
 
     return (
         <Container>
@@ -61,7 +76,7 @@ export const ClassicPasswordEdit = () => {
             {!loading &&(
                 <Card>
                     <CardContent>
-                        <IconButton component={Link} sx={{ mr: 3 }} to={`/tag`}>
+                        <IconButton component={Link} sx={{ mr: 3 }} to={`/classic`}>
                             <ArrowBackIcon />
                         </IconButton>{" "}
                         <form onSubmit={updatePassword}>
@@ -98,6 +113,7 @@ export const ClassicPasswordEdit = () => {
                     </CardContent>
                     <CardActions></CardActions>
                 </Card>)}
+            <ToastContainer/>
         </Container>
     );
 };

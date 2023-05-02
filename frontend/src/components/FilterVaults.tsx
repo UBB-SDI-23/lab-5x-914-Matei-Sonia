@@ -9,72 +9,89 @@ import {
     CircularProgress,
     Container,
     IconButton,
-    Tooltip,
+    Tooltip, TextField, Button,
 } from "@mui/material";
-import React from "react";
+import React, {BaseSyntheticEvent} from "react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BACKEND_API_URL } from "../constants";
+import { Vault } from "../models/Vault";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import axios from "axios";
 import Pagination from "./Paginator";
 
-export const StatVaults = () => {
-    const [loading, setLoading] = useState(true);
+export const FilterVaults = () => {
+    const [loading, setLoading] = useState(false);
+    const [vaults, setVaults] = useState<Vault[]>([]);
     const [totalVaults, setTotalVaults ] = useState();
-    const [vaults, setVaults] = useState<{
-        id: number;
-        created_at: string;
-        last_modified: string;
-        title: string;
-        description: string;
-        avg_password_length: number;
-    }[]>([]);
-
-    useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/statistics-vault`)
-            .then((response1) => {
-                axios.get(`${BACKEND_API_URL}/vault/number`).then( (response) => {
-                    setTotalVaults(response.data["number"]);
-                    setVaults(response1.data);
-                    setLoading(false);
-                })
-            });
-    }, []);
-
     const [pg, setpg] = React.useState(1);
+
+    useEffect(() => {}, []);
+
     const [PerPage] = useState(25);
 
     const paginate = (pageNB: React.SetStateAction<number>) => {
         setLoading(true);
         setpg(pageNB)
-        axios.get(`${BACKEND_API_URL}/statistics-vault?page=${pageNB}`)
+        axios.get(`${BACKEND_API_URL}/vault/gt/${filterYear}?page=${pageNB}`)
             .then((response) => {
                 setVaults(response.data);
                 setLoading(false);
             });}
 
+    const [filterYear, setFilterYear] = useState();
+    const filter = async (event: { preventDefault: () => void }) => {
+        event.preventDefault();
+        try {
+            console.log("bla1");
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/vault/gt/${filterYear}`)
+                .then((response1) => {
+                    axios.get(`${BACKEND_API_URL}/vault-filter/number/${filterYear}`).then( (response) => {
+                        setTotalVaults(response.data["number"]);
+                        setVaults(response1.data);
+                        setLoading(false);
+                    })
+                });
+            console.log("bla2")
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     return (
         <Container>
-            <h3>Vaults in the descending order of the average length of the account passwords.</h3>
+            <h3>Vaults created in the years greater than:</h3>
 
             {loading && <CircularProgress />}
-            {!loading && vaults.length === 0 && <p>No vaults found</p>}
+            {!loading && (
+                <Container >
+                    <form onSubmit={filter} style={{display: "flex", justifyContent: "left", alignItems: "center"}}>
+                        <TextField label="Input Year"
+                                   variant="outlined"
+                                   // @ts-ignore
+                                   onInputCapture={(event: BaseSyntheticEvent) => {
+                                       if (event.target.value) {
+                                           setFilterYear(event.target.value)
+                                       }}}
+                       />
+                        <Button type="submit" sx={{marginLeft: 3}}>Filter</Button>
+                    </form>
+                </Container>
+            )}
             {!loading && vaults.length > 0 && (
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
                             <TableRow>
                                 <TableCell>#</TableCell>
-                                <TableCell align="right">created_at
+                                <TableCell align="left">created_at
                                 </TableCell>
-                                <TableCell align="right">last_modified</TableCell>
-                                <TableCell align="center">title</TableCell>
-                                <TableCell align="center">description</TableCell>
-                                <TableCell align="center">avg_password_length</TableCell>
+                                <TableCell align="left">last_modified</TableCell>
+                                <TableCell align="left">title</TableCell>
+                                <TableCell align="left">description</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -89,7 +106,6 @@ export const StatVaults = () => {
                                         </Link>
                                     </TableCell>
                                     <TableCell align="left">{vault.description}</TableCell>
-                                    <TableCell align="left">{vault.avg_password_length}</TableCell>
                                     <TableCell align="right">
                                         <IconButton
                                             component={Link}
@@ -115,12 +131,11 @@ export const StatVaults = () => {
                 </TableContainer>
             )}
             <br/>
-            {!loading && ( <Pagination
+            {!loading && vaults.length > 0 && (<Pagination
                 PerPage={PerPage}
                 total={totalVaults}
                 paginate={paginate}
                 currPage={pg}
             />)}
         </Container>
-    );
-};
+    )};

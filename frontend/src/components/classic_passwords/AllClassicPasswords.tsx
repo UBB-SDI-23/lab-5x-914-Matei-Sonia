@@ -21,19 +21,22 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import Pagination from "../Paginator";
 
 export const AllClassicPasswords = () => {
     const [loading, setLoading] = useState(true);
+    const [totalPassw, setTotalPassw ] = useState();
     const [passw, setPassw] = useState<PasswordClassic[]>([]);
 
     useEffect(() => {
         setLoading(true);
         axios.get(`${BACKEND_API_URL}/classic`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
+            .then((response1) => {
+                axios.get(`${BACKEND_API_URL}/classic/number`).then( (response) => {
+                    setTotalPassw(response.data["number"]);
+                    setPassw(response1.data);
+                    setLoading(false);
+                })
             });
     }, []);
 
@@ -77,25 +80,16 @@ export const AllClassicPasswords = () => {
     };
 
     const [pg, setpg] = React.useState(1);
+    const [PerPage] = useState(25);
 
-    const handleNext = () => {
+    const paginate = (pageNB: React.SetStateAction<number>) => {
         setLoading(true);
-        setpg(pg + 1)
-        axios.get(`${BACKEND_API_URL}/classic?page=${pg}`)
+        setpg(pageNB)
+        axios.get(`${BACKEND_API_URL}/classic?page=${pageNB}`)
             .then((response) => {
                 setPassw(response.data);
                 setLoading(false);
-            });
-    }
-    const handleBack = () => {
-        setLoading(true);
-        setpg(pg - 1)
-        axios.get(`${BACKEND_API_URL}/classic?page=${pg}`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
-            });
-    }
+            });}
 
     return (
         <Container>
@@ -171,18 +165,12 @@ export const AllClassicPasswords = () => {
                 </TableContainer>
             )}
             <br/>
-            <Container>
-                <IconButton onClick={handleBack} disabled={pg === 1}>
-                    <Tooltip title="Back" arrow>
-                        <ArrowBackIosNewIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-                <IconButton onClick={handleNext} disabled={pg === 40000}>
-                    <Tooltip title="Next" arrow>
-                        <ArrowForwardIosIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-            </Container>
+            {!loading && ( <Pagination
+                PerPage={PerPage}
+                total={totalPassw}
+                paginate={paginate}
+                currPage={pg}
+            />)}
         </Container>
     );
 };

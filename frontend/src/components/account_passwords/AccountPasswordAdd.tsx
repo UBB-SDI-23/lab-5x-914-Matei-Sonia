@@ -16,11 +16,13 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { PasswordAccount } from "../../models/Account";
 import { Tag } from "../../models/Tag";
+import {toast, ToastContainer} from "react-toastify";
 
 export const AccountPasswordAdd = () => {
     const navigate = useNavigate();
 
     const [passw, setPassw] = useState<PasswordAccount>({
+        nb_tgs: 0,
         username_or_email: "",
         website_or_app: "",
         note: "",
@@ -56,21 +58,35 @@ export const AccountPasswordAdd = () => {
 
     const addPassword = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.post(`${BACKEND_API_URL}/account`, passw);
-            navigate("/account");
-        } catch (error) {
-            console.log(error);
+        if (passw.password.length < 5) {
+            notify("password length >= 5");
+        }
+        else {
+            try {
+                await axios.post(`${BACKEND_API_URL}/account`, passw);
+                navigate("/account");
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 
     const handleInputChange = (event: any, value: any, reason: any) => {
-        console.log("input", value, reason);
-
         if (reason === "input") {
             debouncedFetchSuggestions(value);
         }
     };
+
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
 
     return (
         <Container>
@@ -132,6 +148,7 @@ export const AccountPasswordAdd = () => {
                 </CardContent>
                 <CardActions></CardActions>
             </Card>
+            <ToastContainer />
         </Container>
     );
 };

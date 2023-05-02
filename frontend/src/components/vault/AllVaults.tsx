@@ -9,7 +9,7 @@ import {
     CircularProgress,
     Container,
     IconButton,
-    Tooltip, TableSortLabel, TablePagination,
+    Tooltip, TableSortLabel,
 } from "@mui/material";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -21,19 +21,23 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import Pagination from "../Paginator";
 
 export const AllVaults = () => {
     const [loading, setLoading] = useState(true);
     const [vaults, setVaults] = useState<Vault[]>([]);
+    const [totalVaults, setTotalVaults ] = useState();
+    const [pg, setpg] = React.useState(1);
 
     useEffect(() => {
         setLoading(true);
-        axios.get(`${BACKEND_API_URL}/vault`)
-            .then((response) => {
-                setVaults(response.data);
-                setLoading(false);
+        axios.get(`${BACKEND_API_URL}/vault?page=${pg}`)
+            .then((response1) => {
+                axios.get(`${BACKEND_API_URL}/vault/number`).then( (response) => {
+                    setTotalVaults(response.data["number"]);
+                    setVaults(response1.data);
+                    setLoading(false);
+                })
             });
     }, []);
 
@@ -75,27 +79,16 @@ export const AllVaults = () => {
             }
         });
     };
+    const [PerPage] = useState(25);
 
-    const [pg, setpg] = React.useState(1);
-
-    const handleNext = () => {
+    const paginate = (pageNB: React.SetStateAction<number>) => {
         setLoading(true);
-        setpg(pg + 1)
-        axios.get(`${BACKEND_API_URL}/vault?page=${pg}`)
+        setpg(pageNB)
+        axios.get(`${BACKEND_API_URL}/vault?page=${pageNB}`)
             .then((response) => {
                 setVaults(response.data);
                 setLoading(false);
-            });
-    }
-    const handleBack = () => {
-        setLoading(true);
-        setpg(pg - 1)
-        axios.get(`${BACKEND_API_URL}/vault?page=${pg}`)
-            .then((response) => {
-                setVaults(response.data);
-                setLoading(false);
-            });
-    }
+            });}
 
     return (
         <Container>
@@ -143,6 +136,15 @@ export const AllVaults = () => {
                                         master_password
                                     </TableSortLabel>
                                     </TableCell>
+                                <TableCell align="left">
+                                    <TableSortLabel
+                                        active={orderColumn === "accounts"}
+                                        direction={orderColumn === "accounts" ? orderDirection : undefined}
+                                        onClick={() => handleSort("accounts")}
+                                    >
+                                        account_passws
+                                    </TableSortLabel>
+                                    </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -156,6 +158,7 @@ export const AllVaults = () => {
                                     </TableCell>
                                     <TableCell align="left">{vault.description}</TableCell>
                                     <TableCell align="left">{vault.master_password}</TableCell>
+                                    <TableCell align="left">{vault.nb_acc}</TableCell>
                                     <TableCell align="right">
                                         <IconButton
                                             component={Link}
@@ -181,17 +184,11 @@ export const AllVaults = () => {
                 </TableContainer>
             )}
             <br/>
-            <Container>
-                <IconButton onClick={handleBack} disabled={pg === 1}>
-                    <Tooltip title="Back" arrow>
-                        <ArrowBackIosNewIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-                <IconButton onClick={handleNext} disabled={pg === 40000}>
-                    <Tooltip title="Next" arrow>
-                        <ArrowForwardIosIcon color="primary" />
-                    </Tooltip>
-                </IconButton>
-            </Container>
+            {!loading && ( <Pagination
+                PerPage={PerPage}
+                total={totalVaults}
+                paginate={paginate}
+                currPage={pg}
+            />)}
         </Container>
     )};

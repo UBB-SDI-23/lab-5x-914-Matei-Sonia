@@ -1,3 +1,6 @@
+*.sql
+*.sqlite3
+*.pem
 /backend/passwords/migrations/0*
 /backend/passwords/venv/
 __pycache__/

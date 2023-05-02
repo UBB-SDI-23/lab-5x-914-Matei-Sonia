@@ -14,12 +14,15 @@ import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 export const VaultEdit = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { vaultId } = useParams();
 
     const [vault, setVault] = useState<Vault>({
+        nb_acc: 0,
         title: "",
         description: "",
         master_password: "",
@@ -31,13 +34,44 @@ export const VaultEdit = () => {
         tags: []
     });
 
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
+
     const updateVault = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.put(`${BACKEND_API_URL}/vault/${vaultId}`, vault);
-            navigate("/vault");
-        } catch (error) {
-            console.log(error);
+        if (vault.master_password.length < 8){
+            notify("master_password length >= 8");
+        }
+        else {
+            try {
+                axios.get<Vault[]>(
+                    `${BACKEND_API_URL}/vault/autocomplete?query=${vault.title}`
+                )
+                    .then(response => {
+
+                        if (response.data.length > 0) {
+                            notify("title must be unique");
+                        }
+                        else {
+                            try {
+                                axios.put(`${BACKEND_API_URL}/vault/${vaultId}`, vault);
+                                navigate("/vault");
+                            } catch (error) {
+                                console.log(error);
+                            }
+                        }
+                    })
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+            }
         }
     };
 
@@ -99,6 +133,7 @@ export const VaultEdit = () => {
                 </CardContent>
                 <CardActions></CardActions>
             </Card>)}
+            <ToastContainer/>
         </Container>
     );
 };

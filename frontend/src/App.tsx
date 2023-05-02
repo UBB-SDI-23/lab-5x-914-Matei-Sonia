@@ -33,6 +33,7 @@ import {TagsDetails} from "./components/tag/TagsDetails";
 import {TagsDelete} from "./components/tag/TagsDelete";
 import {TagsAdd} from "./components/tag/TagsAdd";
 import {TagsEdit} from "./components/tag/TagsEdit";
+import {FilterVaults} from "./components/FilterVaults";
 
 function App() {
     return (
@@ -65,6 +66,7 @@ function App() {
                     <Route path="/tag/:tagId/delete" element={<TagsDelete/>} />
                     <Route path="/tag/:tagId/details" element={<TagsDetails/>} />
                     <Route path="/tag/add" element={<TagsAdd/>} />
+                    <Route path="/vault/filter" element={<FilterVaults/>} />
                 </Routes>
             </Router>
         </>

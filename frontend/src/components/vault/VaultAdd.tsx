@@ -1,5 +1,4 @@
 import {
-    Autocomplete,
     Button,
     Card,
     CardActions,
@@ -14,14 +13,13 @@ import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
-import { PasswordAccount } from "../../models/Account";
-import { PasswordClassic } from "../../models/Classic";
-import { Tag } from "../../models/Tag";
+import {toast, ToastContainer} from "react-toastify";
+
 
 export const VaultAdd = () => {
     const navigate = useNavigate();
-
     const [vault, setVault] = useState<Vault>({
+        nb_acc: 0,
         title: "",
         description: "",
         master_password: "",
@@ -33,13 +31,44 @@ export const VaultAdd = () => {
         tags: []
     });
 
+    function notify(message: string) { toast(`🦄 ${message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+    });} []
+
     const addVault = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        try {
-            await axios.post(`${BACKEND_API_URL}/vault`, vault);
-            navigate("/vault");
-        } catch (error) {
-            console.log(error);
+        if (vault.master_password.length < 8){
+            notify("master_password length >= 8");
+        }
+        else {
+            try {
+                axios.get<Vault[]>(
+                    `${BACKEND_API_URL}/vault/autocomplete?query=${vault.title}`
+                )
+                    .then(response => {
+
+                        if (response.data.length > 0) {
+                            notify("title must be unique");
+                        }
+                        else {
+                            try {
+                                axios.post(`${BACKEND_API_URL}/vault`, vault);
+                                navigate("/vault");
+                            } catch (error) {
+                                console.log(error);
+                            }
+                        }
+                    })
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+            }
         }
     };
 
@@ -75,12 +104,12 @@ export const VaultAdd = () => {
                             sx={{ mb: 2 }}
                             onChange={(event) => setVault({ ...vault, master_password: event.target.value })}
                         />
-
                         <Button type="submit">Add Vault</Button>
                     </form>
                 </CardContent>
                 <CardActions></CardActions>
             </Card>
+            <ToastContainer />
         </Container>
     );
 };

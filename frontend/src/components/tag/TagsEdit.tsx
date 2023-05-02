@@ -22,10 +22,11 @@ export const TagsEdit = () => {
     const [loading, setLoading] = useState(true);
 
     const [tag, setTag] = useState<Tag>({
+        nb_acc: 0,
         id: 0,
         title: "",
         vault: 0,
-        tagged_passwords: [],
+        tagged_passwords: []
     });
 
     const updateTag = async (event: { preventDefault: () => void }) => {
