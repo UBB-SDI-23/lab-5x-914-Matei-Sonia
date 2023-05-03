@@ -8,7 +8,7 @@ from copy import deepcopy
 #     for i in range(1000):
 #         file.write('INSERT INTO passwords_vault (title, description, master_password, created_at, last_modified) VALUES \n')
 #         for i in range(999):
-#             string = f"('{fake.word(ext_word_list=list_title_vaults)}{randint(1, 10000)}',  " \
+#             string = f"('{fake.sentence(nb_words=1).replace('.', '')}{randint(1, 10000)}',  " \
 #                      f"'{fake.sentence(nb_words=4, variable_nb_words=True).replace('.', '')}',  '{fake.password()}', '{fake.date_time_between()}'," \
 #                      f" '{fake.date_between()}'),"
 #             file.write(string + '\n')
