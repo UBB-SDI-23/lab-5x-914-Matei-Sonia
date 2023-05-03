@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count
-from django.db.models.functions import Length
+from django.db.models import Avg, Count, Subquery, OuterRef
+from django.db.models.functions import Length, Coalesce
 from rest_framework.generics import get_object_or_404
 
 from passwords.serializers import *
@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.decorators import api_view
+
 
 class FilterVaults(generics.ListAPIView):
     serializer_class = VaultSerializerList
@@ -84,8 +85,13 @@ class VaultList(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        vaults = Vault.objects.all().annotate(nb_acc=Count("account_passwords"))
-        paginator = Paginator(vaults.order_by("id"), 25)
+        # vaults = Vault.objects.all().annotate(nb_acc=Count("account_passwords"))
+        vaults = Vault.objects.annotate(
+                nb_acc=Coalesce(Subquery(
+                    PasswordAccount.objects.filter(vault=OuterRef('pk')).values('vault').annotate(count=Count('id')).values('count')
+                ), 0)
+            )
+        paginator = Paginator(vaults, 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -106,8 +112,15 @@ class TagList(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        tags = Tag.objects.all().annotate(nb_acc=Count("tagged_passwords"))
-        paginator = Paginator(tags.order_by("id"), 25)
+        # tags = Tag.objects.all().annotate(nb_acc=Count("tagged_passwords"))
+        tags = Tag.objects.annotate(
+            nb_acc=Coalesce(Subquery(
+                TagPassword.objects.filter(tag=OuterRef('pk')).values('tag').annotate(
+                    count=Count('id')).values(
+                    'count')
+            ), 0)
+        )
+        paginator = Paginator(tags, 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -130,8 +143,14 @@ class PasswordAccountList(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        passws = PasswordAccount.objects.all().annotate(nb_tgs=Count("tags"))
-        paginator = Paginator(passws.order_by("id"), 25)
+        # passws = PasswordAccount.objects.all().annotate(nb_tgs=Count("tags"))
+        passws = PasswordAccount.objects.annotate(
+            nb_tgs=Coalesce(Subquery(
+                TagPassword.objects.filter(password=OuterRef('pk')).values('password').annotate(count=Count('id')).values(
+                    'count')
+            ), 0)
+        )
+        paginator = Paginator(passws, 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -148,7 +167,7 @@ class PasswordClassicList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         passws = PasswordClassic.objects.all()
-        paginator = Paginator(passws.order_by("id"), 25)
+        paginator = Paginator(passws, 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -223,7 +242,14 @@ class OrderPasswordsByTags(generics.ListCreateAPIView):
     serializer_class = OrderPasswordsByTagsSerializer
 
     def get_queryset(self):
-        queryset = PasswordAccount.objects.annotate(count_tags=Count("tags")).order_by("-count_tags")
+        # queryset = PasswordAccount.objects.annotate(count_tags=Count("tags")).order_by("-count_tags")
+        queryset = PasswordAccount.objects.annotate(
+            count_tags=Coalesce(Subquery(
+                TagPassword.objects.filter(password=OuterRef('pk')).values('password').annotate(
+                    count=Count('id')).values(
+                    'count')
+            ), 0)
+        ).order_by("-count_tags")
         paginator = Paginator(queryset, 25)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
