@@ -1,12 +1,5 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import CssBaseline from "@mui/material/CssBaseline";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
 import * as React from "react";
-import { AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppHome } from "./components/AppHome";
 import { AppMenu } from "./components/AppMenu";
@@ -34,16 +27,29 @@ import {TagsDelete} from "./components/tag/TagsDelete";
 import {TagsAdd} from "./components/tag/TagsAdd";
 import {TagsEdit} from "./components/tag/TagsEdit";
 import {FilterVaults} from "./components/FilterVaults";
+import Register from "./components/Registration";
+import Login from "./components/Login";
+import  {AuthProvider} from "./context/AuthProvider";
+import {UserProfile} from "./components/user/UserProfile";
+import {UserLogout} from "./components/user/UserLogout";
+import {UserEdit} from "./components/user/UserEdit";
+import {ConfirmationCode} from "./components/user/ConfirmationCode";
+import {OtherProfile} from "./components/user/OtherProfile";
+import {Administration} from "./components/user/Administration";
+
 
 function App() {
+    // @ts-ignore
     return (
         <>
             <CssBaseline/>
             <Router>
-                <AppMenu />
-
+                <AuthProvider>
+                    <AppMenu/>
                 <Routes>
-                    <Route path="/" element={<AppHome />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/home" element={<AppHome />} />
                     <Route path="/vault" element={<AllVaults />} />
                     <Route path="/vault/:vaultId/details" element={<VaultDetails/>} />
                     <Route path="/Vault/:vaultId/edit" element={<VaultEdit />} />
@@ -67,7 +73,14 @@ function App() {
                     <Route path="/tag/:tagId/details" element={<TagsDetails/>} />
                     <Route path="/tag/add" element={<TagsAdd/>} />
                     <Route path="/vault/filter" element={<FilterVaults/>} />
+                    <Route path="/profile" element={<UserProfile/>} />
+                    <Route path="/logout" element={<UserLogout/>} />
+                    <Route path="/profile/edit" element={<UserEdit/>} />
+                    <Route path="/activate" element={<ConfirmationCode/>} />
+                    <Route path="/profile/:userId" element={<OtherProfile/>} />
+                    <Route path="/administration" element={<Administration/>} />
                 </Routes>
+                </AuthProvider>
             </Router>
         </>
     );

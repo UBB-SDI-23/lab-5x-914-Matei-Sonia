@@ -1,4 +1,5 @@
 import { Vault } from "./Vault";
+import {User} from "./User";
 
  export interface PasswordClassic{
      id: number;
@@ -8,4 +9,5 @@ import { Vault } from "./Vault";
      password: string;
      used_for: string;
      note: string;
+     user: User|number;
  }

@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {Button, IconButton, Tooltip} from "@mui/material";
 import {Container} from "@mui/system";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import AuthContext from "../context/AuthProvider";
 
 // @ts-ignore
-const Pagination = ({ PerPage, total, paginate, currPage}) => {
+const Pagination = ({ perPage, total, paginate, currPage}) => {
 
+    // @ts-ignore
+    const { user } = useContext(AuthContext);
     //Set number of pages
     // @ts-ignore
     const pagesList = []
-    const pages = Math.ceil(total / PerPage)
+    const pages = Math.ceil(total / perPage)
     for (let i = 1; i <= pages; i++) {
         pagesList.push(i)
     }
@@ -65,7 +68,9 @@ const Pagination = ({ PerPage, total, paginate, currPage}) => {
 
 
     return (
+        <><label>Per Page: {perPage}</label>
         <Container className="pagination-container">
+
             <IconButton
                 href="#"
                 disabled={currentButton === 1}
@@ -75,17 +80,17 @@ const Pagination = ({ PerPage, total, paginate, currPage}) => {
                     <ArrowBackIosNewIcon color="primary" />
                 </Tooltip>
             </IconButton>
-                {arrOfVisibleButtons.map(((item, index) => {
-                    return <Button
-                        href="#"
-                        key={index}
-                        disabled={currentButton === item || item === "... " || item === " ..." || item === "..."}
-                        onClick={ () => {
-                            paginate(item);
-                        }}>
-                        {item}
-                    </Button>
-                }))}
+            {arrOfVisibleButtons.map(((item, index) => {
+                return <Button
+                    href="#"
+                    key={index}
+                    disabled={currentButton === item || item === "... " || item === " ..." || item === "..."}
+                    onClick={ () => {
+                        paginate(item);
+                    }}>
+                    {item}
+                </Button>
+            }))}
             <Button
                 href="#"
                 disabled={currentButton === pages}
@@ -96,6 +101,7 @@ const Pagination = ({ PerPage, total, paginate, currPage}) => {
                 </Tooltip>
             </Button>
         </Container>
+        </>
     );
 }
 

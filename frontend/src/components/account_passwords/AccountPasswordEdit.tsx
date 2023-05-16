@@ -9,7 +9,7 @@ import {
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -19,11 +19,15 @@ import {Vault} from "../../models/Vault";
 import {Tag} from "../../models/Tag";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import {toast, ToastContainer} from "react-toastify";
+import AuthContext from "../../context/AuthProvider";
 export const AcountPasswordEdit = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { passwId } = useParams();
     const [passw, setPassw] = useState<PasswordAccount>({
+        user: user.id,
         nb_tgs: 0,
         username_or_email: "",
         website_or_app: "",
@@ -74,14 +78,19 @@ export const AcountPasswordEdit = () => {
     };
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/account/${passwId}`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
-            })
+        if (user == null) {
+            navigate("/login")
+        }
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/account/${passwId}`)
+                .then((response) => {
+                    setPassw(response.data);
+                    setLoading(false);
+                })
+        }
 
-    }, [passwId]);
+    }, [passwId, axiosBearer]);
 
     const [tag, setTag] = useState<Tag[]>([]);
 
@@ -100,6 +109,9 @@ export const AcountPasswordEdit = () => {
     const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestions, 500), [passw.vault]);
 
     useEffect(() => {
+        if (user == null){
+            navigate("/login");
+        }
         return () => {
             debouncedFetchSuggestions.clear();
         };
@@ -147,6 +159,7 @@ export const AcountPasswordEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setPassw({ ...passw, website_or_app: event.target.value })}
+                                required={true}
                             />
                             <TextField
                                 id="username_or_email"
@@ -156,6 +169,7 @@ export const AcountPasswordEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setPassw({ ...passw, username_or_email: event.target.value })}
+                                required={true}
                             />
                             <TextField
                                 id="note"
@@ -174,6 +188,7 @@ export const AcountPasswordEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setPassw({ ...passw, password: event.target.value })}
+                                required={true}
                             />
                             <Button type="submit">Update Password</Button>
                         </form>
