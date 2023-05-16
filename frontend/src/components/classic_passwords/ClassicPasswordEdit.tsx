@@ -8,20 +8,24 @@ import {
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState } from "react";
+import { useEffect, useState , useContext} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { PasswordClassic } from "../../models/Classic";
 import {toast, ToastContainer} from "react-toastify";
+import AuthContext from "../../context/AuthProvider";
 
 export const ClassicPasswordEdit = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
     const navigate = useNavigate();
     const { passwId } = useParams();
     const [loading, setLoading] = useState(true);
 
     const [passw, setPassw] = useState<PasswordClassic>({
+        user: user.id,
         id: 0,
         created_at: "",
         last_modified: "",
@@ -47,13 +51,20 @@ export const ClassicPasswordEdit = () => {
     };
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/classic/${passwId}`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
-            })
-    }, [passwId]);
+        if (user == null){
+            navigate("/login");
+        }
+
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/classic/${passwId}`)
+                .then((response) => {
+                    setPassw(response.data);
+                    setLoading(false);
+                })
+        }
+
+    }, [passwId, axiosBearer]);
 
     function notify(message: string) { toast(`🦄 ${message}`, {
         position: "top-right",
@@ -89,6 +100,7 @@ export const ClassicPasswordEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setPassw({ ...passw, used_for: event.target.value })}
+                                required={true}
                             />
                             <TextField
                                 id="note"
@@ -107,6 +119,7 @@ export const ClassicPasswordEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setPassw({ ...passw, password: event.target.value })}
+                                required={true}
                             />
                             <Button type="submit">Update Password</Button>
                         </form>

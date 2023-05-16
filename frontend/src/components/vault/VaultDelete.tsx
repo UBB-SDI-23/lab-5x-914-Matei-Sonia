@@ -3,10 +3,20 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { BACKEND_API_URL } from "../../constants";
+import {useContext, useEffect} from "react";
+import AuthContext from "../../context/AuthProvider";
 
 export const VaultDelete = () => {
+    // @ts-ignore
+    const { user } = useContext(AuthContext);
     const { vaultId } = useParams();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user == null){
+            navigate("/login");
+        }
+    })
 
     const handleDelete = async (event: { preventDefault: () => void }) => {
         event.preventDefault();

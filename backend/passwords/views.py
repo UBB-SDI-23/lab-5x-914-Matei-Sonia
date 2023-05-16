@@ -1,4 +1,7 @@
+import sqlite3
+
 from django.core.paginator import Paginator
+from django.db import connections
 from django.db.models import Avg, Count, Subquery, OuterRef
 from django.db.models.functions import Length, Coalesce
 from rest_framework.generics import get_object_or_404
@@ -16,7 +19,7 @@ class FilterVaults(generics.ListAPIView):
 
     def get_queryset(self):
         vaults = Vault.objects.filter(created_at__year__gt=self.kwargs['year'])
-        paginator = Paginator(vaults.order_by("id"), 25)
+        paginator = Paginator(vaults.order_by("id"), self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -58,7 +61,7 @@ def get_number_passwcls(request):
     if request.method == "GET":
         return Response(
             {
-                "number": PasswordClassic.objects.count()
+                "number": PasswordClassic.objects.count(),
             }
         )
 
@@ -73,6 +76,48 @@ def get_number_tags(request):
         )
 
 
+class UserCreate(generics.CreateAPIView):
+    serializer_class = UserSerializerList
+    authentication_classes = []
+    permission_classes = []
+
+
+class UserConfirmCreation(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, code):
+        try:
+            registration_code = RegistrationCode.objects.get(code=code)
+        except RegistrationCode.DoesNotExist:
+            return Response({"detail": "Invalid confirmation code."}, status=status.HTTP_400_BAD_REQUEST)
+        user = registration_code.user
+        if registration_code.expires_at < timezone.now():
+            user.delete()
+            return Response({"detail": "Confirmation code has expired."}, status=status.HTTP_400_BAD_REQUEST)
+        user.is_active = True
+        user.save()
+        registration_code.delete()
+        return Response({"detail": "Account activated."}, status=status.HTTP_200_OK)
+
+
+class UserList(generics.ListAPIView):
+    serializer_class = VaultSerializerList
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+
+        username = self.request.query_params.get("username")
+        if username:
+            queryset = User.objects.filter(username__icontains=username)
+
+        paginator = Paginator(queryset, self.request.user.per_page)
+        page_number = self.request.query_params.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return page_obj.object_list
+
+
 class VaultList(generics.ListCreateAPIView):
     serializer_class = VaultSerializerList
 
@@ -85,17 +130,58 @@ class VaultList(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        # vaults = Vault.objects.all().annotate(nb_acc=Count("account_passwords"))
         vaults = Vault.objects.annotate(
-                nb_acc=Coalesce(Subquery(
-                    PasswordAccount.objects.filter(vault=OuterRef('pk')).values('vault').annotate(count=Count('id')).values('count')
-                ), 0)
-            )
-        paginator = Paginator(vaults, 25)
+            nb_acc=Coalesce(Subquery(
+                PasswordAccount.objects.filter(vault=OuterRef('pk')).values('vault').annotate(count=Count('id')).values(
+                    'count')
+            ), 0)
+        )
+
+        title = self.request.query_params.get("title")
+        if title:
+            vaults = vaults.filter(title__icontains=title)
+
+        paginator = Paginator(vaults, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
         return page_obj.object_list
+
+
+class UserDetails(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializerDetails
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault("context", self.get_serializer_context())
+        serializer = serializer_class(*args, **kwargs)
+        if self.request.method == "GET":
+            serializer.fields['nb_acc'] = serializers.IntegerField()
+            serializer.fields['nb_cls'] = serializers.IntegerField()
+            serializer.fields['nb_vls'] = serializers.IntegerField()
+            serializer.fields['nb_tgs'] = serializers.IntegerField()
+        return serializer
+
+    def get_queryset(self):
+        vaults = User.objects.annotate(
+            nb_acc=Coalesce(Subquery(
+                PasswordAccount.objects.filter(user=OuterRef('pk')).values('user').annotate(count=Count('id')).values(
+                    'count')
+            ), 0),
+            nb_cls=Coalesce(Subquery(
+                PasswordClassic.objects.filter(user=OuterRef('pk')).values('user').annotate(count=Count('id')).values(
+                    'count')
+            ), 0),
+            nb_vls=Coalesce(Subquery(
+                Vault.objects.filter(user=OuterRef('pk')).values('user').annotate(count=Count('id')).values('count')
+            ), 0),
+            nb_tgs=Coalesce(Subquery(
+                Tag.objects.filter(user=OuterRef('pk')).values('user').annotate(count=Count('id')).values('count')
+            ), 0),
+        )
+
+        return vaults
 
 
 class VaultDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -120,7 +206,7 @@ class TagList(generics.ListCreateAPIView):
                     'count')
             ), 0)
         )
-        paginator = Paginator(tags, 25)
+        paginator = Paginator(tags, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -134,6 +220,7 @@ class TagDetails(generics.RetrieveUpdateDestroyAPIView):
 
 class PasswordAccountList(generics.ListCreateAPIView):
     serializer_class = PasswordAccountSerializerList
+
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         kwargs.setdefault("context", self.get_serializer_context())
@@ -143,14 +230,14 @@ class PasswordAccountList(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        # passws = PasswordAccount.objects.all().annotate(nb_tgs=Count("tags"))
         passws = PasswordAccount.objects.annotate(
             nb_tgs=Coalesce(Subquery(
-                TagPassword.objects.filter(password=OuterRef('pk')).values('password').annotate(count=Count('id')).values(
+                TagPassword.objects.filter(password=OuterRef('pk')).values('password').annotate(
+                    count=Count('id')).values(
                     'count')
             ), 0)
         )
-        paginator = Paginator(passws, 25)
+        paginator = Paginator(passws, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -167,7 +254,7 @@ class PasswordClassicList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         passws = PasswordClassic.objects.all()
-        paginator = Paginator(passws, 25)
+        paginator = Paginator(passws, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -201,7 +288,8 @@ class TagAccountPasswordDetails(APIView):
 
     def patch(self, request, pwd_id, tag_id):
         relation = self.get_object(pwd_id, tag_id)
-        serializer = TagPasswordSerializer(instance=relation, data=request.data, partial=True, exclude_fields=["tag", "password"])
+        serializer = TagPasswordSerializer(instance=relation, data=request.data, partial=True,
+                                           exclude_fields=["tag", "password"])
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -212,8 +300,7 @@ class TagAccountPasswordDetails(APIView):
         relation.delete()
         return Response({"message": "Deleted."})
 
-#1834
-
+# 1834
 
 class AccountPasswordTagList(APIView):
     def post(self, request, pk):
@@ -229,13 +316,13 @@ class OrderVaultsByPasswords(generics.ListAPIView):
     serializer_class = VaultOrderSerializerList
 
     def get_queryset(self):
-        queryset = Vault.objects.annotate(avg_password_length=Avg(Length('account_passwords__password'))).order_by("-avg_password_length")
-        paginator = Paginator(queryset, 25)
+        queryset = Vault.objects.annotate(avg_password_length=Avg(Length('account_passwords__password'))).order_by(
+            "-avg_password_length")
+        paginator = Paginator(queryset, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
         return page_obj.object_list
-        # return queryset
 
 
 class OrderPasswordsByTags(generics.ListCreateAPIView):
@@ -250,7 +337,7 @@ class OrderPasswordsByTags(generics.ListCreateAPIView):
                     'count')
             ), 0)
         ).order_by("-count_tags")
-        paginator = Paginator(queryset, 25)
+        paginator = Paginator(queryset, self.request.user.per_page)
         page_number = self.request.query_params.get("page")
         page_obj = paginator.get_page(page_number)
 
@@ -280,9 +367,8 @@ class VaultViewForAutocomplete(APIView):
     serializer_class = VaultSerializerList
 
     def get(self, request, *args, **kwargs):
-
         query = request.GET.get('query')
-        vaults = Vault.objects.filter(title__icontains=query).order_by('title')[:10]
+        vaults = Vault.objects.filter(title__icontains=query).filter(user=self.request.user.id).order_by('title')[:10]
         serializer = VaultSerializerList(vaults, many=True)
         return Response(serializer.data)
 
@@ -295,3 +381,165 @@ class TagViewForAutocomplete(APIView):
         tags = Tag.objects.filter(title__icontains=query).filter(vault=pk).order_by('title')[:10]
         serializer = TagSerializerList(tags, many=True)
         return Response(serializer.data)
+
+
+class SetPerPageAPIView(APIView):
+    def post(self, request):
+        per_page = request.data.get('per_page')  # Get the desired per_page value from the request data
+        print(per_page)
+        try:
+            per_page = int(per_page)
+            if per_page < 5:
+                return Response("The number should be >= 5.", status=400)
+
+            User.objects.update(per_page=per_page)  # Update the per_page value for all users
+            return Response("Successfully updated per_page for all users.")
+        except ValueError:
+            return Response("Invalid per_page value.", status=400)
+
+
+class VaultDeleteListView(generics.DestroyAPIView):
+    serializer_class = VaultSerializerDetails
+    queryset = Vault.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        vault_ids = request.data.get("vault_ids", [])
+        if not vault_ids:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.filter_queryset(self.get_queryset().filter(id__in=vault_ids))
+        if not queryset.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        for obj in queryset:
+            self.perform_destroy(obj)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AccountDeleteListView(generics.DestroyAPIView):
+    serializer_class = PasswordAccountSerializerDetails
+    queryset = PasswordAccount.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        passw_ids = request.data.get("passw_ids", [])
+        if not passw_ids:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.filter_queryset(self.get_queryset().filter(id__in=passw_ids))
+        if not queryset.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        for obj in queryset:
+            self.perform_destroy(obj)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ClassicDeleteListView(generics.DestroyAPIView):
+    serializer_class = PasswordClassicSerializerDetails
+    queryset = PasswordClassic.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        passw_ids = request.data.get("passw_ids", [])
+        if not passw_ids:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.filter_queryset(self.get_queryset().filter(id__in=passw_ids))
+        if not queryset.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        for obj in queryset:
+            self.perform_destroy(obj)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TagDeleteListView(generics.DestroyAPIView):
+    serializer_class = TagSerializerDetails
+    queryset = Tag.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        tag_ids = request.data.get("tag_ids", [])
+
+        if not tag_ids:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.filter_queryset(self.get_queryset().filter(id__in=tag_ids))
+        if not queryset.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        for obj in queryset:
+            self.perform_destroy(obj)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ResetUserView(APIView):
+    def get(self, request):
+        User.objects.all().delete()
+        with connections['default'].cursor() as cursor:
+            cursor.execute(
+                f"UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_user';\n")
+        return Response("All users deleted.")
+
+
+class ResetVaultView(APIView):
+    def get(self, request):
+        Vault.objects.all().delete()
+        return Response("All vaults deleted.")
+
+
+class ResetAccountView(APIView):
+    def get(self, request):
+        PasswordAccount.objects.all().delete()
+        return Response("All account passwords deleted.")
+
+
+class ResetClassicView(APIView):
+    def get(self, request):
+        PasswordClassic.objects.all().delete()
+        return Response("All classic passwords deleted.")
+
+
+class ResetTagView(APIView):
+    def get(self, request):
+        Tag.objects.all().delete()
+        return Response("All tags deleted.")
+
+
+class PopulateView(generics.CreateAPIView):
+    def post(self, request, *args, **kwargs):
+        type = request.data.get("type")
+        file = ""
+        if type == "user":
+            file = "users.sql"
+
+        elif type == "vault":
+            file = "vaults.sql"
+
+        elif type == "account":
+            file = "accounts.sql"
+
+        elif type == "classic":
+            file = "classics.sql"
+
+        elif type == "tag":
+            file = "tags.sql"
+
+        elif type == "relation":
+            file = "relation.sql"
+
+        try:
+            with open(file, 'r') as sql_file:
+                sql_script = sql_file.read()
+
+            db = sqlite3.connect('db.sqlite3')
+            cursor = db.cursor()
+            cursor.executescript(sql_script)
+            db.commit()
+            db.close()
+        except FileNotFoundError as e:
+            return Response(e.strerror, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Population completed.")

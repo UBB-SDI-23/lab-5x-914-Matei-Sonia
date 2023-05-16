@@ -8,20 +8,23 @@ import {
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState, useContext} from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { PasswordAccount } from "../../models/Account";
-import { Tag } from "../../models/Tag";
 import {toast, ToastContainer} from "react-toastify";
+import AuthContext from "../../context/AuthProvider";
 
 export const AccountPasswordAdd = () => {
+    // @ts-ignore
+    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [passw, setPassw] = useState<PasswordAccount>({
+        user: user.id,
         nb_tgs: 0,
         username_or_email: "",
         website_or_app: "",
@@ -51,6 +54,10 @@ export const AccountPasswordAdd = () => {
     const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestions, 500), []);
 
     useEffect(() => {
+        if (user == null){
+            navigate("/login");
+        }
+
         return () => {
             debouncedFetchSuggestions.clear(); //cancel??
         };
@@ -100,7 +107,7 @@ export const AccountPasswordAdd = () => {
                             id="vault"
                             options={vault}
                             getOptionLabel={(option) => `${option.title}`}
-                            renderInput={(params) => <TextField {...params} label="Vault" variant="outlined" />}
+                            renderInput={(params) => <TextField {...params} required={true} label="Vault" variant="outlined" />}
                             filterOptions={(x) => x}
                             onInputChange={handleInputChange}
                             onChange={(event, value) => {
@@ -118,6 +125,7 @@ export const AccountPasswordAdd = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) => setPassw({ ...passw, website_or_app: event.target.value })}
+                            required={true}
                         />
                         <TextField
                             id="username_or_email"
@@ -126,6 +134,7 @@ export const AccountPasswordAdd = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) => setPassw({ ...passw, username_or_email: event.target.value })}
+                            required={true}
                         />
                         <TextField
                             id="note"
@@ -142,6 +151,7 @@ export const AccountPasswordAdd = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) => setPassw({ ...passw, password: event.target.value })}
+                            required={true}
                         />
                         <Button type="submit">Add Password</Button>
                     </form>

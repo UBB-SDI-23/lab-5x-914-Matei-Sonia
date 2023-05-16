@@ -1,15 +1,12 @@
 import { Container, Card, CardContent, IconButton, CardActions, Button } from "@mui/material";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import axios from "axios";
-import { BACKEND_API_URL } from "../../constants";
-import {useEffect, useContext} from "react";
+import {useContext, useEffect} from "react";
 import AuthContext from "../../context/AuthProvider";
 
-export const AccountPasswordDelete = () => {
+export const UserLogout = () => {
     // @ts-ignore
-    const { user } = useContext(AuthContext);
-    const { passwId } = useParams();
+    const { user, logoutUser } = useContext(AuthContext);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,28 +15,23 @@ export const AccountPasswordDelete = () => {
         }
     })
 
-    const handleDelete = async (event: { preventDefault: () => void }) => {
-        event.preventDefault();
-        await axios.delete(`${BACKEND_API_URL}/account/${passwId}`);
-        navigate("/account");
-    };
-
     const handleCancel = (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        navigate("/account");
+        // go to courses list
+        navigate("/profile");
     };
 
     return (
         <Container>
             <Card>
                 <CardContent>
-                    <IconButton component={Link} sx={{ mr: 3 }} to={`/account`}>
+                    <IconButton component={Link} sx={{ mr: 3 }} to={`/profile`}>
                         <ArrowBackIcon />
                     </IconButton>{" "}
-                    Are you sure you want to delete this password? This cannot be undone!
+                    Are you sure you want to log out?
                 </CardContent>
                 <CardActions>
-                    <Button onClick={handleDelete}>Delete it</Button>
+                    <Button onClick={logoutUser}>Log out</Button>
                     <Button onClick={handleCancel}>Cancel</Button>
                 </CardActions>
             </Card>

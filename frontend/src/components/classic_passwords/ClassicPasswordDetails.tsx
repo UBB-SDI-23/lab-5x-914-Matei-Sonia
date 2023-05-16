@@ -1,7 +1,7 @@
 import {Box, Card, CardActions, CardContent, CircularProgress, IconButton, List, ListItem} from "@mui/material";
 import { Container } from "@mui/system";
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { PasswordClassic } from "../../models/Classic";
 import EditIcon from "@mui/icons-material/Edit";
@@ -9,21 +9,31 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import {Vault} from "../../models/Vault";
+import AuthContext from "../../context/AuthProvider";
 
 export const ClassicPasswordDetails = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const { passwId } = useParams();
     const [passw, setPassw] = useState<PasswordClassic>();
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/classic/${passwId}`)
-            .then((response) => {
-                setPassw(response.data);
-                setLoading(false);
-            })
+        if (user == null){
+            navigate("/login");
+        }
 
-    }, [passwId]);
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/classic/${passwId}`)
+                .then((response) => {
+                    setPassw(response.data);
+                    setLoading(false);
+                })
+        }
+
+    }, [passwId, axiosBearer]);
 
     return (
         <Container>

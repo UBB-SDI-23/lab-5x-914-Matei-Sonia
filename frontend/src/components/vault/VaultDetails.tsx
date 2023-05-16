@@ -1,28 +1,37 @@
 import {Box, Card, CardActions, CardContent, CircularProgress, IconButton, List, ListItem} from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import {useContext, useEffect, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
+import AuthContext from "../../context/AuthProvider";
 
 export const VaultDetails = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const { vaultId } = useParams();
     const [vault, setVault] = useState<Vault>();
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/vault/${vaultId}`)
-            .then((response) => {
-                setVault(response.data);
-                setLoading(false);
-            })
+        if (user == null)
+            navigate("/login");
 
-    }, [vaultId]);
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/vault/${vaultId}`)
+                .then((response) => {
+                    setVault(response.data);
+                    setLoading(false);
+                })
+        }
+
+    }, [vaultId, axiosBearer]);
 
     return (
         <Container>

@@ -1,27 +1,30 @@
 import {
-    Autocomplete, Box,
+    Box,
     Button,
     Card,
     CardActions,
-    CardContent, CircularProgress, debounce,
+    CardContent, CircularProgress,
     IconButton,
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
-import { PasswordAccount } from "../../models/Account";
 import { Tag } from "../../models/Tag";
+import AuthContext from "../../context/AuthProvider";
 
 export const TagsEdit = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
     const navigate = useNavigate();
     const { tagId } = useParams();
     const [loading, setLoading] = useState(true);
 
     const [tag, setTag] = useState<Tag>({
+        user: user.id,
         nb_acc: 0,
         id: 0,
         title: "",
@@ -41,14 +44,20 @@ export const TagsEdit = () => {
     };
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/tag/${tagId}`)
-            .then((response) => {
-                setTag(response.data);
-                setLoading(false);
-            })
+        if (user == null){
+            navigate("/login");
+        }
 
-    }, [tagId]);
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/tag/${tagId}`)
+                .then((response) => {
+                    setTag(response.data);
+                    setLoading(false);
+                })
+        }
+
+    }, [tagId, axiosBearer]);
 
     return (
         <Container>
@@ -73,6 +82,7 @@ export const TagsEdit = () => {
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) => setTag({ ...tag, title: event.target.value })}
+                                required={true}
                             />
                             <Button type="submit">Update Tag</Button>
                         </form>

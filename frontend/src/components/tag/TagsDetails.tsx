@@ -1,7 +1,7 @@
 import {Box, Card, CardActions, CardContent, CircularProgress, IconButton, List, ListItem} from "@mui/material";
 import { Container } from "@mui/system";
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, {useContext, useEffect, useState,} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { Tag } from "../../models/Tag";
 import EditIcon from "@mui/icons-material/Edit";
@@ -9,21 +9,31 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import {Vault} from "../../models/Vault";
+import AuthContext from "../../context/AuthProvider";
 
 export const TagsDetails = () => {
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const { tagId } = useParams();
     const [tag, setTag] = useState<Tag>();
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${BACKEND_API_URL}/tag/${tagId}`)
-            .then((response) => {
-                setTag(response.data);
-                setLoading(false);
-            })
+        if (user == null){
+            navigate("/login");
+        }
 
-    }, [tagId]);
+        if (axiosBearer) {
+            setLoading(true);
+            axios.get(`${BACKEND_API_URL}/tag/${tagId}`)
+                .then((response) => {
+                    setTag(response.data);
+                    setLoading(false);
+                })
+        }
+
+    }, [tagId, axiosBearer]);
 
     return (
         <Container>

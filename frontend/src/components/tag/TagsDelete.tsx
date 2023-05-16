@@ -3,10 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { BACKEND_API_URL } from "../../constants";
+import {useEffect, useContext} from "react";
+import AuthContext from "../../context/AuthProvider";
 
 export const TagsDelete = () => {
     const { tagId } = useParams();
     const navigate = useNavigate();
+    // @ts-ignore
+    const { user } = useContext(AuthContext);
 
     const handleDelete = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
@@ -18,6 +22,12 @@ export const TagsDelete = () => {
         event.preventDefault();
         navigate("/tag");
     };
+
+    useEffect(() => {
+        if (user == null){
+            navigate("/login");
+        }
+    })
 
     return (
         <Container>
