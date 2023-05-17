@@ -69,6 +69,24 @@ class UserSerializerList(serializers.ModelSerializer):
 
 
 class VaultSerializerList(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    def get_user(self, obj):
+        if self.context['request'].method == 'GET':
+            serializer = UserSerializerList(obj.user)
+            return serializer.data
+        else:
+            return obj.user_id
+
+    def to_internal_value(self, data):
+        if self.context['request'].method == 'POST':
+            user_id = data.pop('user', None)
+            data = super().to_internal_value(data)
+            data['user_id'] = user_id
+        else:
+            data = super().to_internal_value(data)
+        return data
+
     def validate_master_password(self, master_password):
         if master_password is not None:
             if len(master_password) < 8:
@@ -88,7 +106,7 @@ class VaultSerializerList(serializers.ModelSerializer):
 
 
 class TagSerializerList(serializers.ModelSerializer):
-
+    user = serializers.SerializerMethodField()
     def validate(self, data):
         errors = {}
         try:
@@ -106,13 +124,45 @@ class TagSerializerList(serializers.ModelSerializer):
 
         return data
 
+    def get_user(self, obj):
+        if self.context['request'].method == 'GET':
+            serializer = UserSerializerList(obj.user)
+            return serializer.data
+        else:
+            return obj.user_id
+
+    def to_internal_value(self, data):
+        if self.context['request'].method == 'POST':
+            user_id = data.pop('user', None)
+            data = super().to_internal_value(data)
+            data['user_id'] = user_id
+        else:
+            data = super().to_internal_value(data)
+        return data
+
     class Meta:
         model = Tag
         fields = ["id", "vault", "title", "user"]
 
 
 class PasswordAccountSerializerList(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
 
+    def get_user(self, obj):
+        if self.context['request'].method == 'GET':
+            serializer = UserSerializerList(obj.user)
+            return serializer.data
+        else:
+            return obj.user_id
+
+    def to_internal_value(self, data):
+        if self.context['request'].method == 'POST':
+            user_id = data.pop('user', None)
+            data = super().to_internal_value(data)
+            data['user_id'] = user_id
+        else:
+            data = super().to_internal_value(data)
+        return data
     def validate_password(self, password):
         if password is not None:
             if len(password) < 5:
@@ -142,7 +192,23 @@ class PasswordAccountSerializerList(serializers.ModelSerializer):
 
 
 class PasswordClassicSerializerList(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
 
+    def get_user(self, obj):
+        if self.context['request'].method == 'GET':
+            serializer = UserSerializerList(obj.user)
+            return serializer.data
+        else:
+            return obj.user_id
+
+    def to_internal_value(self, data):
+        if self.context['request'].method == 'POST':
+            user_id = data.pop('user', None)
+            data = super().to_internal_value(data)
+            data['user_id'] = user_id
+        else:
+            data = super().to_internal_value(data)
+        return data
     def validate_password(self, password):
         if password is not None:
             if len(password) < 5:

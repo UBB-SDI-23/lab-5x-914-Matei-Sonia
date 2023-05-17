@@ -2,21 +2,21 @@ from faker import Faker
 from random import randint
 from copy import deepcopy
 
-with open("users.sql", "w") as file:
-    fake = Faker()
-    # file.write("UPDATE SQLITE_SEQUENCE SET SEQ=1 WHERE NAME='passwords_user';\n")
-    for i in range(10):
-        file.write('INSERT INTO passwords_user (password, last_login, is_superuser, created_at, last_modified, username, email, is_staff, is_active, per_page) VALUES \n')
-        for j in range(999):
-            string = f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
-                     f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25),"
-            file.write(string + '\n')
-        string =  f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
-                     f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25);"
-        file.write(string + '\n')
-
-    file.flush()
-    file.close()
+# with open("users.sql", "w") as file:
+#     fake = Faker()
+#     # file.write("UPDATE SQLITE_SEQUENCE SET SEQ=1 WHERE NAME='passwords_user';\n")
+#     for i in range(10):
+#         file.write('INSERT INTO passwords_user (password, last_login, is_superuser, created_at, last_modified, username, email, is_staff, is_active, per_page) VALUES \n')
+#         for j in range(999):
+#             string = f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
+#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25),"
+#             file.write(string + '\n')
+#         string =  f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
+#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25);"
+#         file.write(string + '\n')
+#
+#     file.flush()
+#     file.close()
 
 # with open("vaults.sql", "w") as file:
 #     fake = Faker()
@@ -49,31 +49,31 @@ with open("users.sql", "w") as file:
 #     file.flush()
 #     file.close()
 #
-# with open("profiles.sql", "w") as file:
-#     fake = Faker()
-#     file.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_userprofile';\n')
-#     id_user = 1
-#     genders = ["M", "F"]
-#     marital_status = ["married", "divorced", "single", "relationship", "widowed"]
-#     for i in range(10):
-#         file.write('INSERT INTO passwords_userprofile (user_id, bio, gender, marital_status, birthday, instagram) VALUES \n')
-#         for j in range(999):
-#             string = f"({id_user}, '{fake.paragraph()}',  " \
-#                      f"'{fake.word(ext_word_list=genders)}',  '{fake.word(ext_word_list=marital_status)}', '{fake.date_between()}'," \
-#                      f" '{fake.user_name()}'),"
-#             file.write(string + '\n')
-#
-#             id_user += 1
-#
-#         string = f"({id_user}, '{fake.paragraph()}',  " \
-#                  f"'{fake.word(ext_word_list=genders)}',  '{fake.word(ext_word_list=marital_status)}', '{fake.date_between()}'," \
-#                  f" '{fake.user_name()}');"
-#         file.write(string + '\n')
-#
-#         id_user += 1
-#
-#     file.flush()
-#     file.close()
+with open("profiles.sql", "w") as file:
+    fake = Faker()
+    file.write("UPDATE SQLITE_SEQUENCE SET SEQ=1 WHERE NAME='passwords_userprofile';\n")
+    id_user = 2
+    genders = ["M", "F"]
+    marital_status = ["married", "divorced", "single", "relationship", "widowed"]
+    for i in range(10):
+        file.write('INSERT INTO passwords_userprofile (user_id, bio, gender, marital_status, birthday, instagram) VALUES \n')
+        for j in range(999):
+            string = f"({id_user}, '{fake.paragraph()}',  " \
+                     f"'{fake.word(ext_word_list=genders)}',  '{fake.word(ext_word_list=marital_status)}', '{fake.date_between()}'," \
+                     f" '{fake.user_name()}'),"
+            file.write(string + '\n')
+
+            id_user += 1
+
+        string = f"({id_user}, '{fake.paragraph()}',  " \
+                 f"'{fake.word(ext_word_list=genders)}',  '{fake.word(ext_word_list=marital_status)}', '{fake.date_between()}'," \
+                 f" '{fake.user_name()}');"
+        file.write(string + '\n')
+
+        id_user += 1
+
+    file.flush()
+    file.close()
 
 # with open("classics.sql", "w") as file:
 #     fake = Faker()

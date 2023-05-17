@@ -512,7 +512,10 @@ class PopulateView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         type = request.data.get("type")
         file = ""
-        if type == "user":
+        if type == "profile":
+            file = "profiles.sql"
+
+        elif type == "user":
             file = "users.sql"
 
         elif type == "vault":
