@@ -8,19 +8,22 @@ import {
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState , useContext} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { Tag } from "../../models/Tag";
-import {PasswordAccount} from "../../models/Account";
+import AuthContext from "../../context/AuthProvider";
 
 export const TagsAdd = () => {
+    // @ts-ignore
+    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [tag, setTag] = useState<Tag>({
+        user: user.id,
         id: 0,
         title: "",
         vault: 0, nb_acc: 0,
@@ -44,6 +47,9 @@ export const TagsAdd = () => {
     const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestions, 500), []);
 
     useEffect(() => {
+        if (user == null){
+            navigate("/login");
+        }
         return () => {
             debouncedFetchSuggestions.clear();
         };
@@ -79,7 +85,7 @@ export const TagsAdd = () => {
                             id="vault"
                             options={vault}
                             getOptionLabel={(option) => `${option.title}`}
-                            renderInput={(params) => <TextField {...params} label="Vault" variant="outlined" />}
+                            renderInput={(params) => <TextField {...params} required={true} label="Vault" variant="outlined" />}
                             filterOptions={(x) => x}
                             onInputChange={handleInputChange}
                             onChange={(event, value) => {
@@ -97,6 +103,7 @@ export const TagsAdd = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) => setTag({ ...tag, title: event.target.value })}
+                            required={true}
                         />
                         <Button type="submit">Add Tag</Button>
                     </form>

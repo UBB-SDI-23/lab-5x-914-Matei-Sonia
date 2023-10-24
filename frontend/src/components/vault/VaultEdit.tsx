@@ -8,7 +8,7 @@ import {
     TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useCallback, useEffect, useState } from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import { Vault } from "../../models/Vault";
@@ -16,12 +16,16 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AuthContext from "../../context/AuthProvider";
 export const VaultEdit = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { vaultId } = useParams();
+    // @ts-ignore
+    const { user, axiosBearer } = useContext(AuthContext);
 
     const [vault, setVault] = useState<Vault>({
+        user: user.id,
         nb_acc: 0,
         title: "",
         description: "",
@@ -76,14 +80,19 @@ export const VaultEdit = () => {
     };
 
     useEffect(() => {
-        setLoading(true);
+        if (user == null)
+            navigate("/login");
+
+        if (axiosBearer) {
+            setLoading(true);
             axios.get(`${BACKEND_API_URL}/vault/${vaultId}`)
                 .then((response) => {
                     setVault(response.data);
                     setLoading(false);
                 })
+        }
 
-    }, [vaultId]);
+    }, [vaultId, axiosBearer]);
 
     return (
         <Container>
@@ -107,6 +116,7 @@ export const VaultEdit = () => {
                             sx={{ mb: 2 }}
                             onChange={(event) => setVault({ ...vault, title: event.target.value })}
                             defaultValue={vault.title}
+                            required={true}
                         />
                         <TextField
                             id="description"
@@ -125,7 +135,7 @@ export const VaultEdit = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) => setVault({ ...vault, master_password: event.target.value })}
-
+                            required={true}
                         />
 
                         <Button type="submit">Update Vault</Button>

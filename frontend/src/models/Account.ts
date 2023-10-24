@@ -1,5 +1,6 @@
 import { Vault } from "./Vault";
 import { TagPassword } from "./TagPassword";
+import {User} from "./User";
 
 export interface PasswordAccount {
     id: number;
@@ -12,4 +13,5 @@ export interface PasswordAccount {
     note: string;
     tags: TagPassword[];
     nb_tgs: number;
+    user: User|number;
 }
