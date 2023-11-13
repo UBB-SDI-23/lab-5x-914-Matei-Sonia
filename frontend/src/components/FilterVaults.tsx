@@ -136,24 +136,24 @@ export const FilterVaults = () => {
                                         </Link>
                                     </TableCell>
                                     <TableCell align="left">{vault.description}</TableCell>
-                                    <TableCell align="right">
-                                        <IconButton
-                                            component={Link}
-                                            sx={{ mr: 3 }}
-                                            to={`/vault/${vault.id}/details`}>
-                                            <Tooltip title="View vault details" arrow>
-                                                <ReadMoreIcon color="primary" />
-                                            </Tooltip>
-                                        </IconButton>
+                                    {/*<TableCell align="right">*/}
+                                    {/*    <IconButton*/}
+                                    {/*        component={Link}*/}
+                                    {/*        sx={{ mr: 3 }}*/}
+                                    {/*        to={`/vault/${vault.id}/details`}>*/}
+                                    {/*        <Tooltip title="View vault details" arrow>*/}
+                                    {/*            <ReadMoreIcon color="primary" />*/}
+                                    {/*        </Tooltip>*/}
+                                    {/*    </IconButton>*/}
 
-                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/edit`}>
-                                            <EditIcon />
-                                        </IconButton>
+                                    {/*    <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/edit`}>*/}
+                                    {/*        <EditIcon />*/}
+                                    {/*    </IconButton>*/}
 
-                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/delete`}>
-                                            <DeleteForeverIcon sx={{ color: "red" }} />
-                                        </IconButton>
-                                    </TableCell>
+                                    {/*    <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/delete`}>*/}
+                                    {/*        <DeleteForeverIcon sx={{ color: "red" }} />*/}
+                                    {/*    </IconButton>*/}
+                                    {/*</TableCell>*/}
                                 </TableRow>
                             ))}
                         </TableBody>

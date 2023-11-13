@@ -10,6 +10,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import {Vault} from "../../models/Vault";
 import AuthContext from "../../context/AuthProvider";
+import {User} from "../../models/User";
 
 export const ClassicPasswordDetails = () => {
     // @ts-ignore
@@ -66,7 +67,7 @@ export const ClassicPasswordDetails = () => {
                             <EditIcon />
                         </IconButton>
 
-                        <IconButton component={Link} sx={{ mr: 3 }} to={`/classic/${passwId}/delete`}>
+                        <IconButton component={Link} sx={{ mr: 3 }} to={`/classic/${passwId}/delete/${(passw?.user as User).id}`}>
                             <DeleteForeverIcon sx={{ color: "red" }} />
                         </IconButton>
                     </CardActions>

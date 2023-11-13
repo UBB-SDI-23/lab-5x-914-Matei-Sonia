@@ -27,7 +27,7 @@ import {User} from "../../models/User";
 
 export const AllClassicPasswords = () => {
     // @ts-ignore
-    const { user, axiosBearer } = useContext(AuthContext);
+    const { user, axiosBearer, roles } = useContext(AuthContext);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [totalPassw, setTotalPassw ] = useState();
@@ -142,7 +142,7 @@ export const AllClassicPasswords = () => {
 
             {loading && <CircularProgress />}
             {!loading && passw.length === 0 && <p>No passwords found</p>}
-            {!loading && checkedVaults.length > 0 && (
+            {!loading && checkedVaults.length > 0 && roles.includes("admin")&& (
                 <Button onClick={handleMultipleDelete} sx={{backgroundColor: "#4d0000"}}>Delete</Button>
             )}
             {!loading && (
@@ -197,7 +197,7 @@ export const AllClassicPasswords = () => {
                                     </TableCell>
                                     <TableCell component="th" scope="row">{(pg - 1) * 25 + index + 1}</TableCell>
                                     <TableCell component="th" scope="row">
-                                        <Link to={(passw.user as User).id != user.id ? `/profile/${(passw.user as User).id}/` : `/profile`} title="View user profile">
+                                        <Link to={(passw.user as User).id != user.id || user.id == 0 ? `/profile/${(passw.user as User).id}` : `/profile`} title="View user profile">
                                             {(passw.user as User).username}
                                         </Link>
                                     </TableCell>
@@ -221,7 +221,7 @@ export const AllClassicPasswords = () => {
                                             <EditIcon />
                                         </IconButton>
 
-                                        <IconButton component={Link} sx={{ mr: 0 }} to={`/classic/${passw.id}/delete`}>
+                                        <IconButton component={Link} sx={{ mr: 0 }} to={`/classic/${passw.id}/delete/${(passw?.user as User).id}`}>
                                             <DeleteForeverIcon sx={{ color: "red" }} />
                                         </IconButton>
                                     </TableCell>

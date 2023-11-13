@@ -22,7 +22,7 @@ export const UserProfile = () => {
     useEffect(() => {
         if (user == null)
             navigate("/login");
-
+        console.log(user, axiosBearer);
         if (axiosBearer) {
             setLoading(true);
             axios.get(`${BACKEND_API_URL}/user/${user.id}`)
@@ -44,6 +44,7 @@ export const UserProfile = () => {
                 <Card>
                     <CardContent>
                         <h1>Profile</h1>
+                        <h1>{userDetail?.is_staff}</h1>
                         <ul>
                             <li>Created: {userDetail?.created_at}</li>
                             <li>Modified: {userDetail?.last_modified}</li>

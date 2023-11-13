@@ -9,6 +9,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import AuthContext from "../../context/AuthProvider";
+import {User} from "../../models/User";
 
 export const VaultDetails = () => {
     // @ts-ignore
@@ -85,7 +86,7 @@ export const VaultDetails = () => {
                         <EditIcon />
                     </IconButton>
 
-                    <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vaultId}/delete`}>
+                    <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vaultId}/delete/${(vault?.user as User).id}`}>
                         <DeleteForeverIcon sx={{ color: "red" }} />
                     </IconButton>
                 </CardActions>

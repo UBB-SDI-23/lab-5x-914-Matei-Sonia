@@ -1,64 +1,51 @@
 import { useRef, useEffect, useContext } from 'react';
 import AuthContext from "../context/AuthProvider";
 import {Container} from "@mui/system";
+import {Button} from "@mui/material";
+import {Profile} from "../models/Profile";
+import {useNavigate} from "react-router-dom";
+import jwt_decode from "jwt-decode";
+import axios from "axios";
 
 const Login = () => {
     // @ts-ignore
-    const { logoutUser, loginUser } = useContext(AuthContext);
+    const { logoutUser, loginUser, setUserr, setAxiosBearer } = useContext(AuthContext);
     const userRef = useRef();
-    // const errRef = useRef();
-
-    // const [user, setUser] = useState('');
-    // const [pwd, setPwd] = useState('');
-    // const [errMsg, setErrMsg] = useState('');
-    // const [success, setSuccess] = useState(false);
-
-    useEffect(() => {
-        // @ts-ignore
-        userRef.current.focus();
-        logoutUser();
-    }, [])
+    const navigate = useNavigate();
 
     // useEffect(() => {
-    //     setErrMsg('');
-    // }, [user, pwd])
+    //     // @ts-ignore
+    //     userRef.current.focus();
+    //     logoutUser();
+    // }, [])
 
-    // const handleSubmit = async (e: { preventDefault: () => void; }) => {
-    //     e.preventDefault();
-    //
-    //     try {
-    //         const response = await axios.post(LOGIN_URL,
-    //             JSON.stringify({ user, pwd }),
-    //             {
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 withCredentials: true
-    //             }
-    //         );
-    //         console.log(JSON.stringify(response?.data));
-    //         //console.log(JSON.stringify(response));
-    //         const accessToken = response?.data?.accessToken;
-    //         const roles = response?.data?.roles;
-    //         setAuth({ user, pwd, roles, accessToken });
-    //         setUser('');
-    //         setPwd('');
-    //         setSuccess(true);
-    //     } catch (err) {
-    //         // @ts-ignore
-    //         if (!err?.response) {
-    //             setErrMsg('No Server Response');
-    //         } // @ts-ignore
-    //         else if (err.response?.status === 400) {
-    //             setErrMsg('Missing Username or Password');
-    //         } // @ts-ignore
-    //         else if (err.response?.status === 401) {
-    //             setErrMsg('Unauthorized');
-    //         } else {
-    //             setErrMsg('Login Failed');
-    //         }
-    //         // @ts-ignore
-    //         errRef.current.focus();
-    //     }
-    // }
+    const handleLogInAnonymously = () => {
+        setUserr({
+            id: 0,
+            created_at: "",
+            last_modified: "",
+            username: "",
+            password: "",
+            email: "",
+            is_staff: "",
+            is_active: "",
+            nb_acc: "",
+            nb_cls: "",
+            nb_vls: "",
+            nb_tgs: "",
+            profile: {
+                id: 0,
+                bio: "",
+                gender: "",
+                marital_status: "",
+                birthday: "",
+                instagram: "",
+            },
+            per_page: "",
+        })
+        setAxiosBearer(true);
+        navigate("/home");
+    }
 
     return (
         <Container sx={{display: "flex", justifyContent: "center"}}>
@@ -95,6 +82,8 @@ const Login = () => {
                             <a href="/register">Sign Up</a>
                         </span>
                     </p>
+                    <br/>
+                    <button onClick={handleLogInAnonymously}>Log in anonymously</button>
                 </section>
         </Container>
     )

@@ -19,7 +19,7 @@ import AuthContext from "../../context/AuthProvider";
 
 export const ClassicPasswordEdit = () => {
     // @ts-ignore
-    const { user, axiosBearer } = useContext(AuthContext);
+    const { user, axiosBearer, roles } = useContext(AuthContext);
     const navigate = useNavigate();
     const { passwId } = useParams();
     const [loading, setLoading] = useState(true);
@@ -59,6 +59,12 @@ export const ClassicPasswordEdit = () => {
             setLoading(true);
             axios.get(`${BACKEND_API_URL}/classic/${passwId}`)
                 .then((response) => {
+
+                    if (roles.includes("user") && response.data.user.id != user.id){
+                        setLoading(false);
+                        navigate("/unauthorized");
+                    }
+
                     setPassw(response.data);
                     setLoading(false);
                 })

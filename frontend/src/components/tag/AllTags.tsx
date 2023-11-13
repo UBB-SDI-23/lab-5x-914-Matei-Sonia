@@ -27,7 +27,7 @@ import {User} from "../../models/User";
 
 export const AllTags = () => {
     // @ts-ignore
-    const { user, axiosBearer } = useContext(AuthContext);
+    const { user, axiosBearer, roles } = useContext(AuthContext);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [totalTags, setTotalTags] = useState()
@@ -141,7 +141,7 @@ export const AllTags = () => {
 
             {loading && <CircularProgress />}
             {!loading && tags.length === 0 && <p>No tags found</p>}
-            {!loading && checkedVaults.length > 0 && (
+            {!loading && checkedVaults.length > 0 && roles.includes("admin")&& (
                 <Button onClick={handleMultipleDelete} sx={{backgroundColor: "#4d0000"}}>Delete</Button>
             )}
             {!loading && (
@@ -196,7 +196,7 @@ export const AllTags = () => {
                                     </TableCell>
                                     <TableCell component="th" scope="row">{(pg - 1) * 25 + index + 1}</TableCell>
                                     <TableCell component="th" scope="row">
-                                        <Link to={(tags.user as User).id != user.id ? `/profile/${(tags.user as User).id}/` : `/profile`} title="View user profile">
+                                        <Link to={(tags.user as User).id != user.id || user.id == 0 ? `/profile/${(tags.user as User).id}` : `/profile`} title="View user profile">
                                             {(tags.user as User).username}
                                         </Link>
                                     </TableCell>
@@ -220,7 +220,7 @@ export const AllTags = () => {
                                             <EditIcon />
                                         </IconButton>
 
-                                        <IconButton component={Link} sx={{ mr: 0 }} to={`/tag/${tags.id}/delete`}>
+                                        <IconButton component={Link} sx={{ mr: 0 }} to={`/tag/${tags.id}/delete/${(tags.user as User).id}`}>
                                             <DeleteForeverIcon sx={{ color: "red" }} />
                                         </IconButton>
                                     </TableCell>

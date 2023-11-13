@@ -1,6 +1,6 @@
 import sqlite3
 
-with open('../users.sql', 'r') as sql_file:
+with open('../relation.sql', 'r') as sql_file:
     sql_script = sql_file.read()
 
 

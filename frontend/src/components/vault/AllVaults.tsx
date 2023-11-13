@@ -27,7 +27,7 @@ import {User} from "../../models/User";
 
 export const AllVaults = () => {
     // @ts-ignore
-    const { user, axiosBearer, notifyAll } = useContext(AuthContext);
+    const { user, axiosBearer, notifyAll, roles } = useContext(AuthContext);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [vaults, setVaults] = useState<Vault[]>([]);
@@ -139,7 +139,7 @@ export const AllVaults = () => {
 
             {loading && <CircularProgress />}
             {!loading && vaults.length === 0 && <p>No vaults found</p>}
-            {!loading && checkedVaults.length > 0 && (
+            {!loading && checkedVaults.length > 0 && roles.includes("admin") && (
                 <Button onClick={handleMultipleDelete} sx={{backgroundColor: "#4d0000"}}>Delete</Button>
             )}
             {!loading && (
@@ -211,7 +211,7 @@ export const AllVaults = () => {
                                     </TableCell>
                                     <TableCell component="th" scope="row">{(pg - 1) * 25 + index + 1}</TableCell>
                                     <TableCell component="th" scope="row">
-                                        <Link to={(vault.user as User).id != user.id ? `/profile/${(vault.user as User).id}/` : `/profile`} title="View user profile">
+                                        <Link to={((vault.user as User).id != user.id || user.id == 0) ? `/profile/${(vault.user as User).id}` : `/profile`} title="View user profile">
                                             {(vault.user as User).username}
                                         </Link>
                                     </TableCell>
@@ -237,7 +237,7 @@ export const AllVaults = () => {
                                             <EditIcon />
                                         </IconButton>
 
-                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/delete`}>
+                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/vault/${vault.id}/delete/${(vault.user as User).id}`}>
                                             <DeleteForeverIcon sx={{ color: "red" }} />
                                         </IconButton>
                                     </TableCell>

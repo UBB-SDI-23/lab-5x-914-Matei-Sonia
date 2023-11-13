@@ -1,18 +1,18 @@
 from faker import Faker
 from random import randint
 from copy import deepcopy
-
+#
 # with open("users.sql", "w") as file:
 #     fake = Faker()
-#     # file.write("UPDATE SQLITE_SEQUENCE SET SEQ=1 WHERE NAME='passwords_user';\n")
+#     file.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_user';\n")
 #     for i in range(10):
-#         file.write('INSERT INTO passwords_user (password, last_login, is_superuser, created_at, last_modified, username, email, is_staff, is_active, per_page) VALUES \n')
-#         for j in range(999):
+#         file.write('INSERT INTO passwords_user (password, last_login, is_superuser, created_at, last_modified, username, email, is_staff, is_active, per_page, role) VALUES \n')
+#         for j in range(9):
 #             string = f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
-#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25),"
+#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25, '{fake.word(ext_word_list=['admin', 'user', 'moderator'])}'),"
 #             file.write(string + '\n')
 #         string =  f"('pbkdf2_sha256$390000$XcpQN8wSzDbIOPFLuCTbmO$s/+mxRanzAWjuy/3ezP1EpmGxqp+RknTElE5/HfrPVM=', " \
-#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25);"
+#                      f" null,  0, '2023-05-13 16:32:30.402', '2023-05-13', '{fake.user_name()}{j}{i}', '{fake.user_name()}{j}{i}@gmail.com', 0, 1, 25, '{fake.word(ext_word_list=['admin', 'user', 'moderator'])}');"
 #         file.write(string + '\n')
 #
 #     file.flush()
@@ -20,12 +20,12 @@ from copy import deepcopy
 
 # with open("vaults.sql", "w") as file:
 #     fake = Faker()
-#     file.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_vault';\n')
+#     file.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_vault';\n")
 #     list_title_vaults = ['vault', 'work', 'university', 'websites', 'company', 'organization', 'job', 'secret', 'top-secret', 'home', 'school']
 #     id_user = 1
-#     for i in range(1000):
+#     for i in range(10):
 #         file.write('INSERT INTO passwords_vault (user_id, title, description, master_password, created_at, last_modified) VALUES \n')
-#         for j in range(999):
+#         for j in range(9):
 #             string = f"({id_user}, '{fake.sentence(nb_words=1).replace('.', '')}{randint(1, 10000)}',  " \
 #                      f"'{fake.sentence(nb_words=4, variable_nb_words=True).replace('.', '')}',  '{fake.password()}', '{fake.date_time_between()}'," \
 #                      f" '{fake.date_between()}'),"
@@ -51,13 +51,13 @@ from copy import deepcopy
 #
 with open("profiles.sql", "w") as file:
     fake = Faker()
-    file.write("UPDATE SQLITE_SEQUENCE SET SEQ=1 WHERE NAME='passwords_userprofile';\n")
-    id_user = 2
+    file.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_userprofile';\n")
+    id_user = 1
     genders = ["M", "F"]
     marital_status = ["married", "divorced", "single", "relationship", "widowed"]
     for i in range(10):
         file.write('INSERT INTO passwords_userprofile (user_id, bio, gender, marital_status, birthday, instagram) VALUES \n')
-        for j in range(999):
+        for j in range(9):
             string = f"({id_user}, '{fake.paragraph()}',  " \
                      f"'{fake.word(ext_word_list=genders)}',  '{fake.word(ext_word_list=marital_status)}', '{fake.date_between()}'," \
                      f" '{fake.user_name()}'),"
@@ -74,14 +74,14 @@ with open("profiles.sql", "w") as file:
 
     file.flush()
     file.close()
-
+#
 # with open("classics.sql", "w") as file:
 #     fake = Faker()
-#     file.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_passwordclassic';\n')
+#     file.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_passwordclassic';\n")
 #     id_user_vault = 1
-#     for i in range(1000):
+#     for i in range(10):
 #         file.write('INSERT INTO passwords_passwordclassic (user_id, vault_id, created_at, last_modified, used_for, note, password) VALUES \n')
-#         for j in range(999):
+#         for j in range(9):
 #             string = f"({id_user_vault}, {id_user_vault}, '{fake.date_time_between()}', '{fake.date_between()}', " \
 #                      f"'{fake.sentence(nb_words=2).replace('.', '')}', " \
 #                      f"'{fake.sentence(nb_words=4, variable_nb_words=True).replace('.', '')}',  '{fake.password()}'),"
@@ -109,14 +109,14 @@ with open("profiles.sql", "w") as file:
 # file_rel = open("relation.sql", "w")
 # list_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 #
-#     file_tag.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_tag';\n')
-#     file_accp.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_passwordaccount';\n')
-#     file_rel.write('UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_tagpassword';\n')
+# file_tag.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_tag';\n")
+# file_accp.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_passwordaccount';\n")
+# file_rel.write("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='passwords_tagpassword';\n")
 # fake = Faker()
 # id_user_vault = 1
-# for i in range(100):
+# for i in range(10):
 #     print(i)
-#     for j in range(1000):
+#     for j in range(10):
 #
 #         file_tag.write('INSERT INTO passwords_tag (user_id, vault_id, title) VALUES \n')
 #         file_accp.write('INSERT INTO passwords_passwordaccount (created_at, last_modified, user_id, vault_id, website_or_app, username_or_email, note, password) VALUES \n')

@@ -59,7 +59,6 @@ export const UserEdit = () => {
         axios.patch(`${BACKEND_API_URL}/user/${user.id}`, userDetail)
             .then(() => navigate("/profile"))
             .catch((response) => {
-                console.log(response);
                 for (const msg1 in response.response.data) {
                     if (msg1 == "profile") {
                         for (const msg2 in response.response.data[msg1]){

@@ -101,6 +101,14 @@ export const AppMenu = () => {
                                     sx={{ mr: 5 }}>
                                     Administration
                             </Button>
+                            <Button
+                                    variant={path.startsWith("/logout") ? "outlined" : "text"}
+                                    to="/logout"
+                                    component={Link}
+                                    color="inherit"
+                                    sx={{ mr: 5 }}>
+                                    Log out
+                            </Button>
                         </Toolbar>
                     </AppBar>
                 </Box>

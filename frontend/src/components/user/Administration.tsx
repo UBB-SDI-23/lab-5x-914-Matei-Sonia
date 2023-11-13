@@ -12,6 +12,8 @@ export const Administration = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false)
     const [perPage, setPerPage] = useState()
+    const [username, setUsername] = useState()
+    const [role, setRole] = useState()
 
     useEffect(() => {
         if (user == null)
@@ -86,6 +88,20 @@ export const Administration = () => {
             .catch((error) => {
                 setLoading(false);
                 notifyAll(error.response.data["detail"]);
+            });
+    };
+
+    const handlePopulationUserProfiles = (event: { preventDefault: () => void }, ) => {
+        event.preventDefault();
+        setLoading(true);
+        axios.post(`${BACKEND_API_URL}/populate`, {type: "profile"})
+            .then(() => {
+                setLoading(false);
+                notifyAll("User profiles populated.");
+            })
+            .catch((error) => {
+                setLoading(false);
+                console.log(error)
             });
     };
 
@@ -188,6 +204,25 @@ export const Administration = () => {
             });
     }
 
+    const handleRoleChange = (event: { preventDefault: () => void }) => {
+        event.preventDefault();
+        setLoading(true);
+        // @ts-ignore
+        // axios.post(`${BACKEND_API_URL}/user/per-page`, {per_page: perPage})
+        //     .then(() => {
+        //         setLoading(false);
+        //         notifyAll("Change committed.");
+        //     })
+        //     .catch((error) => {
+        //         setLoading(false);
+        //
+        //         for (const msg1 in error.response.data) {
+        //             const value = error.response.data[msg1];
+        //             notifyAll(msg1 + ": " + value)
+        //         }
+        //     });
+    }
+
     return (
         <Container>
                 <br/>
@@ -211,7 +246,8 @@ export const Administration = () => {
                         <Card sx={{padding: "3em", backgroundColor: "#f2f2f2", width: "20em"}}>
                             <h4>Populate Entities</h4>
                             <br/>
-                            <Button disabled={loading} onClick={handlePopulationUser} sx={{backgroundColor: "#4d0000"}}>Users</Button><br/>
+                            <Button disabled={loading} onClick={handlePopulationUserProfiles} sx={{backgroundColor: "#4d0000"}}>User Profiles</Button><br/>
+                            <Button disabled={loading} onClick={handlePopulationUser} sx={{backgroundColor: "#4d0000",   marginTop: "1em"}}>Users</Button><br/>
                             <Button disabled={loading} onClick={handlePopulationVault} sx={{backgroundColor: "#4d0000",  marginTop: "1em"}}>Vaults</Button>
                             <Button disabled={loading} onClick={handlePopulationAccount} sx={{backgroundColor: "#4d0000",  marginTop: "1em"}}>Account Passwords</Button>
                             <Button disabled={loading} onClick={handlePopulationClassic} sx={{backgroundColor: "#4d0000",  marginTop: "1em"}}>Classic Passwords</Button>
@@ -221,24 +257,53 @@ export const Administration = () => {
                     </Container>
                     <br/>
                     <br/>
-                    <Card sx={{padding: "2em", backgroundColor: "#f2f2f2", width: "20em"}}>
-                        <h4>Set Entities per Page</h4>
-                        <br/>
-                        <form onSubmit={handleModifyPerPage} style={{display: "flex", justifyContent: "left", alignItems: "center", alignContent: "center"}}>
-                            <TextField label="Input Number"
-                                       variant="outlined"
-                                       type={"number"}
-                                // @ts-ignore
-                                       onInputCapture={(event: BaseSyntheticEvent) => {
-                                           if (event.target.value) {
-                                               setPerPage(event.target.value)
-                                           }}}
-                                       required={true}
-                            />
+                    <Container sx={{display: "flex", justifyContent: "space-around"}}>
+                        <Card sx={{padding: "2em", backgroundColor: "#f2f2f2", width: "20em"}}>
+                            <h4>Set Entities per Page</h4>
                             <br/>
-                            <Button disabled={loading}  type="submit" sx={{marginLeft: 3}}>SET</Button>
-                        </form>
-                    </Card>
+                            <form onSubmit={handleModifyPerPage} style={{display: "flex", justifyContent: "left", alignItems: "center", alignContent: "center"}}>
+                                <TextField label="Input Number"
+                                           variant="outlined"
+                                           type={"number"}
+                                    // @ts-ignore
+                                           onInputCapture={(event: BaseSyntheticEvent) => {
+                                               if (event.target.value) {
+                                                   setPerPage(event.target.value)
+                                               }}}
+                                           required={true}
+                                />
+                                <br/>
+                                <Button disabled={loading}  type="submit" sx={{marginLeft: 3}}>SET</Button>
+                            </form>
+                        </Card>
+                        <Card sx={{padding: "2em", backgroundColor: "#f2f2f2", width: "20em"}}>
+                            <h4>Set Role for User</h4>
+                            <br/>
+                            <form onSubmit={handleRoleChange} style={{display: "flex", justifyContent: "left", alignItems: "center", alignContent: "center"}}>
+                                <TextField label="Input Name"
+                                           variant="outlined"
+                                    // @ts-ignore
+                                           onInputCapture={(event: BaseSyntheticEvent) => {
+                                               if (event.target.value) {
+                                                   setUsername(event.target.value)
+                                               }}}
+                                           required={true}
+                                />
+                                <br/>
+                                <TextField label="Input Role"
+                                           variant="outlined"
+                                    // @ts-ignore
+                                           onInputCapture={(event: BaseSyntheticEvent) => {
+                                               if (event.target.value) {
+                                                   setRole(event.target.value)
+                                               }}}
+                                           required={true}
+                                />
+                                <br/>
+                                <Button disabled={loading}  type="submit" sx={{marginLeft: 3}}>SET</Button>
+                            </form>
+                        </Card>
+                    </Container>
                 </Container>
         </Container>
     );

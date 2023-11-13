@@ -8,13 +8,17 @@ import AuthContext from "../../context/AuthProvider";
 
 export const AccountPasswordDelete = () => {
     // @ts-ignore
-    const { user } = useContext(AuthContext);
+    const { user, roles } = useContext(AuthContext);
     const { passwId } = useParams();
     const navigate = useNavigate();
+    const { userId } = useParams();
 
     useEffect(() => {
         if (user == null){
             navigate("/login");
+        }
+        if (roles.includes("user") && userId != user.id){
+            navigate("/unauthorized");
         }
     })
 

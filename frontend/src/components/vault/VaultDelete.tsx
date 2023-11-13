@@ -8,13 +8,18 @@ import AuthContext from "../../context/AuthProvider";
 
 export const VaultDelete = () => {
     // @ts-ignore
-    const { user } = useContext(AuthContext);
+    const { user, roles } = useContext(AuthContext);
     const { vaultId } = useParams();
+    const { userId } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
         if (user == null){
             navigate("/login");
+        }
+
+        if (roles.includes("user") && userId != user.id){
+            navigate("/unauthorized");
         }
     })
 

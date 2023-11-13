@@ -22,7 +22,7 @@ export const VaultEdit = () => {
     const navigate = useNavigate();
     const { vaultId } = useParams();
     // @ts-ignore
-    const { user, axiosBearer } = useContext(AuthContext);
+    const { user, axiosBearer, roles } = useContext(AuthContext);
 
     const [vault, setVault] = useState<Vault>({
         user: user.id,
@@ -87,6 +87,12 @@ export const VaultEdit = () => {
             setLoading(true);
             axios.get(`${BACKEND_API_URL}/vault/${vaultId}`)
                 .then((response) => {
+
+                    if (roles.includes("user") && response.data.user.id != user.id){
+                        setLoading(false);
+                        navigate("/unauthorized");
+                    }
+
                     setVault(response.data);
                     setLoading(false);
                 })

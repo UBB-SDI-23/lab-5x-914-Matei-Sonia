@@ -120,24 +120,24 @@ export const StatPassws = () => {
                                     <TableCell align="left">{passw.username_or_email}</TableCell>
                                     <TableCell align="left">{passw.note}</TableCell>
                                     <TableCell align="left">{passw.count_tags}</TableCell>
-                                    <TableCell align="left">
-                                        <IconButton
-                                            component={Link}
-                                            sx={{ mr: 3 }}
-                                            to={`/account/${passw.id}/details`}>
-                                            <Tooltip title="View password details" arrow>
-                                                <ReadMoreIcon color="primary" />
-                                            </Tooltip>
-                                        </IconButton>
+                                    {/*<TableCell align="left">*/}
+                                    {/*    <IconButton*/}
+                                    {/*        component={Link}*/}
+                                    {/*        sx={{ mr: 3 }}*/}
+                                    {/*        to={`/account/${passw.id}/details`}>*/}
+                                    {/*        <Tooltip title="View password details" arrow>*/}
+                                    {/*            <ReadMoreIcon color="primary" />*/}
+                                    {/*        </Tooltip>*/}
+                                    {/*    </IconButton>*/}
 
-                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passw.id}/edit`}>
-                                            <EditIcon />
-                                        </IconButton>
+                                    {/*    <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passw.id}/edit`}>*/}
+                                    {/*        <EditIcon />*/}
+                                    {/*    </IconButton>*/}
 
-                                        <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passw.id}/delete`}>
-                                            <DeleteForeverIcon sx={{ color: "red" }} />
-                                        </IconButton>
-                                    </TableCell>
+                                    {/*    <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passw.id}/delete`}>*/}
+                                    {/*        <DeleteForeverIcon sx={{ color: "red" }} />*/}
+                                    {/*    </IconButton>*/}
+                                    {/*</TableCell>*/}
                                 </TableRow>
                             ))}
                         </TableBody>

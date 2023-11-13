@@ -10,10 +10,17 @@ from passwords.managers import Manager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+
+    class Roles(models.TextChoices):
+        USER = ('user', 'user')
+        MODERATOR = ('moderator', 'moderator')
+        ADMIN = ('admin', 'admin')
+
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateField(auto_now=True)
     username = models.CharField(max_length=100, blank=False, unique=True)
     email = models.EmailField(max_length=200, unique=True)
+    role = models.CharField(max_length=50, choices=Roles.choices, default=Roles.USER)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     per_page = models.IntegerField(default=25)

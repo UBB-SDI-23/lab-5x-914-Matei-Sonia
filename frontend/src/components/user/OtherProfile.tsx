@@ -19,23 +19,7 @@ export const OtherProfile = () => {
     const [loading, setLoading] = useState(true);
     const { userId } = useParams();
     
-    const [otherUser, setOtherUser] = useState<User>({
-        created_at: "",
-        email: "",
-        id: 0,
-        is_active: 0,
-        is_staff: 0,
-        last_modified: "",
-        nb_acc: 0,
-        nb_cls: 0,
-        nb_tgs: 0,
-        nb_vls: 0,
-        password: "",
-        per_page: "",
-        // @ts-ignore
-        profile: undefined,
-        username: ""
-    })
+    const [otherUser, setOtherUser] = useState<User>()
 
     useEffect(() => {
         if (user == null)

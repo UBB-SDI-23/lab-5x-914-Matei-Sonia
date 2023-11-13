@@ -8,6 +8,7 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', views.UserCreate.as_view()),
     path('register/confirm/<str:code>', views.UserConfirmCreation.as_view()),
+    path('user/<int:pk>/role', views.UserRole.as_view()),
 
     path('vault/gt/<int:year>', views.FilterVaults.as_view()),
     path('statistics-vault', views.OrderVaultsByPasswords.as_view(), name='statistics-vault'),

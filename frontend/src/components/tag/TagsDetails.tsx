@@ -10,6 +10,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import {Vault} from "../../models/Vault";
 import AuthContext from "../../context/AuthProvider";
+import { User } from "../../models/User";
 
 export const TagsDetails = () => {
     // @ts-ignore
@@ -69,7 +70,7 @@ export const TagsDetails = () => {
                             <EditIcon />
                         </IconButton>
 
-                        <IconButton component={Link} sx={{ mr: 3 }} to={`/tag/${tagId}/delete`}>
+                        <IconButton component={Link} sx={{ mr: 3 }} to={`/tag/${tagId}/delete/${(tag?.user as User).id}`}>
                             <DeleteForeverIcon sx={{ color: "red" }} />
                         </IconButton>
                     </CardActions>

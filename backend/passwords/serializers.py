@@ -32,6 +32,8 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializerDetail(serializers.ModelSerializer):
     def validate_birthday(self, birthday):
+        if birthday is None:
+            return None
         if birthday > datetime.datetime.now().date():
             raise serializers.ValidationError("Birthday is invalid.")
         return birthday
@@ -54,6 +56,7 @@ class UserProfileSerializerDetail(serializers.ModelSerializer):
 class UserSerializerList(serializers.ModelSerializer):
     password = serializers.CharField(max_length=128, write_only=True)
     profile = UserProfileSerializerDetail(read_only=True)
+    role = serializers.ChoiceField(read_only=True, choices=User.Roles.choices)
 
     def validate_password(self, password):
         if not re.match('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$', password):
@@ -65,7 +68,17 @@ class UserSerializerList(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "created_at", "last_modified", "username", "email", "is_staff", "is_active", "password", "per_page", "profile"]
+        fields = ["id", "created_at", "last_modified", "username", "email", "role", "is_staff", "is_active", "password", "per_page", "profile"]
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+
+    def update(self, user, validated_data):
+        return User.objects.update_user(user, **validated_data)
+
+    class Meta:
+        model = User
+        fields = ["id", "role"]
 
 
 class VaultSerializerList(serializers.ModelSerializer):
@@ -100,6 +113,13 @@ class VaultSerializerList(serializers.ModelSerializer):
                 raise serializers.ValidationError("The title of the vault should be unique.")
         return title
 
+    def validate_user(self, user):
+        auth_user = self.context["request"].user
+        if auth_user.role == user.Roles.USER:
+            if auth_user != user:
+                raise serializers.ValidationError("User must be the authenticated user.")
+        return user
+
     class Meta:
         model = Vault
         fields = ["id", "created_at", "last_modified", "title", "description", "master_password", "user"]
@@ -107,6 +127,14 @@ class VaultSerializerList(serializers.ModelSerializer):
 
 class TagSerializerList(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
+
+    def validate_user(self, user):
+        auth_user = self.context["request"].user
+        if auth_user.role == user.Roles.USER:
+            if auth_user != user:
+                raise serializers.ValidationError("User must be the authenticated user.")
+        return user
+
     def validate(self, data):
         errors = {}
         try:
@@ -148,9 +176,20 @@ class TagSerializerList(serializers.ModelSerializer):
 class PasswordAccountSerializerList(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 
+    def validate_user(self, user):
+        auth_user = self.context["request"].user
+        if auth_user.role == user.Roles.USER:
+            if auth_user != user:
+                raise serializers.ValidationError("User must be the authenticated user.")
+        return user
+
+
     def get_user(self, obj):
         if self.context['request'].method == 'GET':
-            serializer = UserSerializerList(obj.user)
+            try:
+                serializer = UserSerializerList(obj.user)
+            except Exception as e:
+                raise Exception(f"{obj.user_id}")
             return serializer.data
         else:
             return obj.user_id
@@ -193,6 +232,14 @@ class PasswordAccountSerializerList(serializers.ModelSerializer):
 
 class PasswordClassicSerializerList(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
+
+    def validate_user(self, user):
+        auth_user = self.context["request"].user
+        if auth_user.role == user.Roles.USER:
+            if auth_user != user:
+                raise serializers.ValidationError("User must be the authenticated user.")
+        return user
+
 
     def get_user(self, obj):
         if self.context['request'].method == 'GET':
@@ -269,10 +316,7 @@ class TagPasswordSerializer(DynamicFieldsModelSerializer):
 class UserSerializerDetails(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, max_length=128)
     profile = UserProfileSerializerDetail()
-    # classic_passwords = PasswordClassicSerializerList(many=True, read_only=True)
-    # account_passwords = PasswordAccountSerializerList(many=True, read_only=True)
-    # tags = TagSerializerList(many=True, read_only=True)
-    # vaults = VaultSerializerList(many=True, read_only=True)
+    role = serializers.ChoiceField(read_only=True, choices=User.Roles.choices)
 
     def validate_password(self, password):
         if password == "":
@@ -296,7 +340,7 @@ class UserSerializerDetails(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "created_at", "last_modified", "username", "password", "email", "profile", "per_page"]
+        fields = ["id", "created_at", "last_modified", "role", "username", "password", "email", "profile", "per_page"]
 
 
 class VaultSerializerDetails(serializers.ModelSerializer):
@@ -387,7 +431,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        print(user)
         serializer = UserSerializerList(instance=user)
         token['user'] = serializer.data
         return token

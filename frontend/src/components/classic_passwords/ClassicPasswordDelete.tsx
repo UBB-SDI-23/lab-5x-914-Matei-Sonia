@@ -9,9 +9,10 @@ import AuthContext from "../../context/AuthProvider";
 
 export const ClassicPasswordDelete = () => {
     // @ts-ignore
-    const { user } = useContext(AuthContext);
+    const { user, roles } = useContext(AuthContext);
     const { passwId } = useParams();
     const navigate = useNavigate();
+    const { userId } = useParams();
 
     const handleDelete = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
@@ -28,6 +29,10 @@ export const ClassicPasswordDelete = () => {
     useEffect(() => {
         if (user == null){
             navigate("/login");
+        }
+
+        if (roles.includes("user") && userId != user.id){
+            navigate("/unauthorized");
         }
     })
 

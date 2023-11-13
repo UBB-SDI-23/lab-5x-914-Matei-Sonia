@@ -5,7 +5,7 @@ from django.db import connections
 from django.db.models import Avg, Count, Subquery, OuterRef
 from django.db.models.functions import Length, Coalesce
 from rest_framework.generics import get_object_or_404
-
+from passwords.permissions import *
 from passwords.serializers import *
 from django.http import Http404
 from rest_framework.views import APIView
@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view
 
 class FilterVaults(generics.ListAPIView):
     serializer_class = VaultSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         vaults = Vault.objects.filter(created_at__year__gt=self.kwargs['year'])
@@ -103,6 +104,7 @@ class UserConfirmCreation(APIView):
 
 class UserList(generics.ListAPIView):
     serializer_class = VaultSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = User.objects.all()
@@ -120,6 +122,7 @@ class UserList(generics.ListAPIView):
 
 class VaultList(generics.ListCreateAPIView):
     serializer_class = VaultSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -151,6 +154,17 @@ class VaultList(generics.ListCreateAPIView):
 class UserDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializerDetails
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        user = self.request.user
+        permissions = self.permission_classes
+
+        if user.is_authenticated:
+            if user.role == User.Roles.USER:
+                permissions += [IsOwner]
+
+        return [permission() for permission in permissions]
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -187,10 +201,22 @@ class UserDetails(generics.RetrieveUpdateDestroyAPIView):
 class VaultDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vault.objects.all()
     serializer_class = VaultSerializerDetails
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        user = self.request.user
+        permissions = self.permission_classes
+
+        if user.is_authenticated:
+            if user.role == User.Roles.USER:
+                permissions += [IsOwner]
+
+        return [permission() for permission in permissions]
 
 
 class TagList(generics.ListCreateAPIView):
     serializer_class = TagSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer(self, *args, **kwargs):
         serializer = super().get_serializer(*args, **kwargs)
@@ -217,9 +243,24 @@ class TagDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializerDetails
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+    def get_permissions(self):
+        user = self.request.user
+        permissions = self.permission_classes
+
+        if user.is_authenticated:
+            if user.role == User.Roles.USER:
+                permissions += [IsOwner]
+
+        return [permission() for permission in permissions]
+
 
 class PasswordAccountList(generics.ListCreateAPIView):
     serializer_class = PasswordAccountSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -247,10 +288,21 @@ class PasswordAccountList(generics.ListCreateAPIView):
 class PasswordAccountDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = PasswordAccount.objects.all()
     serializer_class = PasswordAccountSerializerDetails
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_permissions(self):
+        user = self.request.user
+        permissions = self.permission_classes
+
+        if user.is_authenticated:
+            if user.role == User.Roles.USER:
+                permissions += [IsOwner]
+
+        return [permission() for permission in permissions]
 
 class PasswordClassicList(generics.ListCreateAPIView):
     serializer_class = PasswordClassicSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         passws = PasswordClassic.objects.all()
@@ -264,9 +316,28 @@ class PasswordClassicList(generics.ListCreateAPIView):
 class PasswordClassicDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = PasswordClassic.objects.all()
     serializer_class = PasswordClassicSerializerDetails
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_permissions(self):
+        user = self.request.user
+        permissions = self.permission_classes
+
+        if user.is_authenticated:
+            if user.role == User.Roles.USER:
+                permissions += [IsOwner]
+
+        return [permission() for permission in permissions]
 
 class TagAccountPasswordList(APIView):
+    def check_permissions(self, request):
+        message = "no permision for this action"
+        if not request.user or not request.user.is_authenticated:
+            self.permission_denied(request, message)
+        if request.user.role == User.Roles.USER:
+            password = get_object_or_404(PasswordAccount, id=self.kwargs["pk"])
+            if request.user != password.user:
+                self.permission_denied(request, message)
+
     def post(self, request, pk):
         request.data["password"] = pk
         serializer = TagPasswordSerializer(data=request.data)
@@ -279,10 +350,19 @@ class TagAccountPasswordList(APIView):
 
 
 class TagAccountPasswordDetails(APIView):
-    @staticmethod
-    def get_object(pwd_id, tag_id):
+    def check_object_permissions(self, request, obj):
+        message = "no permision for this action"
+        if not request.user or not request.user.is_authenticated:
+            self.permission_denied(request, message)
+        if request.user.role == User.Roles.USER:
+            if request.user != obj.password.user:
+                self.permission_denied(request, message)
+
+    def get_object(self, pwd_id, tag_id):
         try:
-            return TagPassword.objects.get(password=pwd_id, tag=tag_id)
+            obj = TagPassword.objects.get(password=pwd_id, tag=tag_id)
+            self.check_object_permissions(self.request, obj)
+            return obj
         except TagPassword.DoesNotExist:
             raise Http404
 
@@ -314,6 +394,7 @@ class AccountPasswordTagList(APIView):
 
 class OrderVaultsByPasswords(generics.ListAPIView):
     serializer_class = VaultOrderSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = Vault.objects.annotate(avg_password_length=Avg(Length('account_passwords__password'))).order_by(
@@ -327,6 +408,7 @@ class OrderVaultsByPasswords(generics.ListAPIView):
 
 class OrderPasswordsByTags(generics.ListCreateAPIView):
     serializer_class = OrderPasswordsByTagsSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         # queryset = PasswordAccount.objects.annotate(count_tags=Count("tags")).order_by("-count_tags")
@@ -345,6 +427,7 @@ class OrderPasswordsByTags(generics.ListCreateAPIView):
 
 
 class MultipleTagsToVault(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def post(self, request, pk):
         tags = []
 
@@ -365,6 +448,7 @@ class MultipleTagsToVault(APIView):
 
 class VaultViewForAutocomplete(APIView):
     serializer_class = VaultSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('query')
@@ -375,6 +459,7 @@ class VaultViewForAutocomplete(APIView):
 
 class TagViewForAutocomplete(APIView):
     serializer_class = TagSerializerList
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk, *args, **kwargs):
         query = request.GET.get('query')
@@ -384,6 +469,7 @@ class TagViewForAutocomplete(APIView):
 
 
 class SetPerPageAPIView(APIView):
+    permission_classes = [IsAdmin]
     def post(self, request):
         per_page = request.data.get('per_page')  # Get the desired per_page value from the request data
         print(per_page)
@@ -401,6 +487,7 @@ class SetPerPageAPIView(APIView):
 class VaultDeleteListView(generics.DestroyAPIView):
     serializer_class = VaultSerializerDetails
     queryset = Vault.objects.all()
+    permission_classes = [IsAdmin]
 
     def delete(self, request, *args, **kwargs):
         vault_ids = request.data.get("vault_ids", [])
@@ -420,6 +507,7 @@ class VaultDeleteListView(generics.DestroyAPIView):
 class AccountDeleteListView(generics.DestroyAPIView):
     serializer_class = PasswordAccountSerializerDetails
     queryset = PasswordAccount.objects.all()
+    permission_classes = [IsAdmin]
 
     def delete(self, request, *args, **kwargs):
         passw_ids = request.data.get("passw_ids", [])
@@ -439,6 +527,7 @@ class AccountDeleteListView(generics.DestroyAPIView):
 class ClassicDeleteListView(generics.DestroyAPIView):
     serializer_class = PasswordClassicSerializerDetails
     queryset = PasswordClassic.objects.all()
+    permission_classes = [IsAdmin]
 
     def delete(self, request, *args, **kwargs):
         passw_ids = request.data.get("passw_ids", [])
@@ -458,6 +547,7 @@ class ClassicDeleteListView(generics.DestroyAPIView):
 class TagDeleteListView(generics.DestroyAPIView):
     serializer_class = TagSerializerDetails
     queryset = Tag.objects.all()
+    permission_classes = [IsAdmin]
 
     def delete(self, request, *args, **kwargs):
         tag_ids = request.data.get("tag_ids", [])
@@ -476,6 +566,7 @@ class TagDeleteListView(generics.DestroyAPIView):
 
 
 class ResetUserView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request):
         User.objects.all().delete()
         with connections['default'].cursor() as cursor:
@@ -485,30 +576,35 @@ class ResetUserView(APIView):
 
 
 class ResetVaultView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request):
         Vault.objects.all().delete()
         return Response("All vaults deleted.")
 
 
 class ResetAccountView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request):
         PasswordAccount.objects.all().delete()
         return Response("All account passwords deleted.")
 
 
 class ResetClassicView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request):
         PasswordClassic.objects.all().delete()
         return Response("All classic passwords deleted.")
 
 
 class ResetTagView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request):
         Tag.objects.all().delete()
         return Response("All tags deleted.")
 
 
 class PopulateView(generics.CreateAPIView):
+    permission_classes = [IsAdmin]
     def post(self, request, *args, **kwargs):
         type = request.data.get("type")
         file = ""
@@ -546,3 +642,9 @@ class PopulateView(generics.CreateAPIView):
             return Response(e.strerror, status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Population completed.")
+
+
+class UserRole(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRoleSerializer
+    permission_classes = [IsAdmin]

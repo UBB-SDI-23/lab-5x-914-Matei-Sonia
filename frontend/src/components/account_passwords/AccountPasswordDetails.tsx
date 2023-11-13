@@ -10,6 +10,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import {Vault} from "../../models/Vault";
 import AuthContext from "../../context/AuthProvider";
+import {User} from "../../models/User";
 
 export const AccountPasswordDetails = () => {
     // @ts-ignore
@@ -74,7 +75,7 @@ export const AccountPasswordDetails = () => {
                             <EditIcon />
                         </IconButton>
 
-                        <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passwId}/delete`}>
+                        <IconButton component={Link} sx={{ mr: 3 }} to={`/account/${passwId}/delete/${(passw?.user as User).id}`}>
                             <DeleteForeverIcon sx={{ color: "red" }} />
                         </IconButton>
                     </CardActions>

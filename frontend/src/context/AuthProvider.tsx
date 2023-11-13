@@ -18,6 +18,8 @@ export const AuthProvider = ({children}) => {
     let [axiosBeared, setAxiosBeared] = useState(false)
     // @ts-ignore
     let [user, setUser] = useState<User|null>(() => localStorage.getItem('authTokens') ? jwt_decode(JSON.parse(localStorage.getItem('authTokens'))["access"]).user : null)
+    // @ts-ignore
+    let [roles, setRoles] = useState<string[]>(localStorage.getItem('authTokens') ? [jwt_decode(JSON.parse(localStorage.getItem('authTokens'))["access"]).user.role] : [""])
 
     const navigate = useNavigate();
 
@@ -38,12 +40,15 @@ export const AuthProvider = ({children}) => {
         axios.post(`${BACKEND_API_URL}/login/`, {username: e.target.username.value, password: e.target.password.value})
             .then((response) => {
                 if(response.status === 200){
+                    console.log(response)
                     const token_data = jwt_decode(response.data["access"]) as any;
                     setUser(token_data.user);
+
                     setAuthTokens(response.data);
                     localStorage.setItem("authTokens", JSON.stringify(response.data));
                     axios.defaults.headers["Authorization"] = "Bearer " + response.data.access;
                     setAxiosBeared(true)
+                    console.log(user)
                     navigate("/home")
                 }else{
                     notify("Something went wrong.")
@@ -63,21 +68,28 @@ export const AuthProvider = ({children}) => {
         axiosBearer: axiosBeared,
         user:user,
         authTokens:authTokens,
+        roles: roles,
         setUserr: setUser,
         setAuthTokens: setAuthTokens,
         loginUser:loginUser,
         logoutUser:logoutUser,
-        notifyAll: notify
+        notifyAll: notify,
+        setAxiosBearer: setAxiosBeared
     }
 
     useEffect(()=> {
         if (localStorage.getItem('authTokens')) {
             try {
+                if (roles.includes("anonymous")){
+                    setAxiosBeared(true);
+                    return
+                }
                 // @ts-ignore
                 let Token = JSON.parse(localStorage.getItem('authTokens'))
                 const decodedToken = jwt_decode(Token.access);
                 const currentTime = new Date().getTime() / 1000;
                 // @ts-ignore
+
                 if (decodedToken.exp >= currentTime) {
                     axios.defaults.headers["Authorization"] = "Bearer " + Token.access;
                     setAxiosBeared(true);

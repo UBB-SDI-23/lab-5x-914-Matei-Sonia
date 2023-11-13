@@ -18,7 +18,7 @@ import AuthContext from "../../context/AuthProvider";
 
 export const TagsEdit = () => {
     // @ts-ignore
-    const { user, axiosBearer } = useContext(AuthContext);
+    const { user, axiosBearer, roles } = useContext(AuthContext);
     const navigate = useNavigate();
     const { tagId } = useParams();
     const [loading, setLoading] = useState(true);
@@ -52,6 +52,12 @@ export const TagsEdit = () => {
             setLoading(true);
             axios.get(`${BACKEND_API_URL}/tag/${tagId}`)
                 .then((response) => {
+
+                    if (roles.includes("user") && response.data.user.id != user.id){
+                        setLoading(false);
+                        navigate("/unauthorized");
+                    }
+
                     setTag(response.data);
                     setLoading(false);
                 })
